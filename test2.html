@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"><title>Тест 2</title><style>
+:root{--bg:#fff;--card:#f4f6f3;--tx:#1b1f1c;--mu:#6a736d;--ac:#2e7d5b;--rd:#d93025;--bd:#dfe4de;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121a16;--card:#1b2621;--tx:#e6efe9;--mu:#9baba1;--ac:#4cc79a;--rd:#ff6b61;--bd:#2c3b33;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--tx);font:16px/1.45 Roboto,"Segoe UI",system-ui,sans-serif;padding:max(8px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom))}
+.top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.top a{padding:8px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);text-decoration:none;font-weight:700}
+.top a.on{background:var(--ac);border-color:var(--ac);color:#fff}
+h1{font-size:20px;margin:6px 0 4px}.hint{color:var(--mu);margin-bottom:12px}
+.big{display:block;width:100%;height:30vh;min-height:150px;border:0;border-radius:24px;background:var(--ac);color:#fff;font-family:inherit;font-weight:700;font-size:clamp(22px,6vw,32px);line-height:1.2;padding:12px;margin-bottom:12px;cursor:pointer}
+.big.rec{background:var(--rd);animation:pl 1.3s ease-in-out infinite}
+.row3{display:flex;gap:8px;margin-bottom:12px}.row3 .small{flex:1;padding:14px 10px;font-size:17px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.th{position:relative}.th img{height:92px;width:auto;max-width:150px;border-radius:12px;display:block;object-fit:cover}.th button{position:absolute;top:4px;right:4px;border:0;border-radius:50%;width:26px;height:26px;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
+.big.sm{height:10vh;min-height:50px;font-size:clamp(18px,5vw,24px);border-radius:16px}
+.big.alt{background:var(--card);color:var(--tx);border:2px solid var(--ac)}
+@keyframes pl{50%{opacity:.78}}@media (prefers-reduced-motion:reduce){.big.rec{animation:none}}
+.small{padding:10px 16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+audio{width:100%;margin-bottom:12px}
+textarea{width:100%;min-height:30vh;border:1px solid var(--bd);border-radius:16px;background:var(--card);color:var(--tx);font:inherit;padding:14px;margin-bottom:12px;resize:vertical}
+.msg{min-height:1.5em;font-weight:700;color:var(--ac)}.msg.err{color:var(--rd)}
+.panel{position:fixed;inset:0;background:var(--bg);padding:max(12px,env(safe-area-inset-top)) 14px 14px;overflow:auto;z-index:5}
+.panel[hidden],[hidden]{display:none!important}
+</style></head><body><div id="root"><textarea class="x-tx" placeholder="Напишите заметку…"></textarea>
+<button type="button" class="big sm x-save">Сохранить заметку</button>
+<div class="msg x-msg" role="status"></div></div><script>
+const P='nap_';
+const lg=(k,d)=>{try{const v=localStorage.getItem(P+k);return v?JSON.parse(v):d}catch(e){return d}};
+const lset=(k,v)=>{try{localStorage.setItem(P+k,JSON.stringify(v))}catch(e){}};
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
+const numOf=(t,pre)=>{if(t.startsWith(pre+' ')){const m=t.slice(pre.length+1).match(/^(\d+)/);return m?+m[1]:0}return(pre==='Запись'&&/^\d+$/.test(t))?+t:0};
+const nextNum=pre=>Math.max(0,...lg('items',[]).filter(r=>r.cat==='Входящие').map(r=>numOf(r.title,pre)))+1;
+function idb(){return new Promise(res=>{try{const o=indexedDB.open('nap',1);o.onupgradeneeded=()=>{if(!o.result.objectStoreNames.contains('b'))o.result.createObjectStore('b')};o.onsuccess=()=>res(o.result);o.onerror=()=>res(null)}catch(e){res(null)}})}
+async function putBlob(id,blob){const d=await idb();if(!d)throw new Error('хранилище браузера недоступно');return new Promise((res,rej)=>{const t=d.transaction('b','readwrite');t.objectStore('b').put(blob,id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+/* запись в Напоминалку: сегодня, категория «Входящие», раздел «Входящие»; название «Запись 3 · 14:25» или «Заметка 2 · 14:25» */
+async function addReminder(pre,notes,blob,at){
+ const items=lg('items',[]);let cats=lg('cats',null);if(!cats)cats=['Работа','Дом','Здоровье','Учёба','Покупки'];if(!cats.includes('Входящие'))cats.push('Входящие');
+ const n=nextNum(pre),title=pre+' '+n+' · '+hm(at||new Date()),id='r'+Date.now()+Math.floor(Math.random()*1000),files=[],att=[];
+ const parts=Array.isArray(blob)?blob:(blob?[{blob,name:title,type:blob.type}]:[]);
+ let k=0;for(const p of parts){const fid='f'+Date.now()+Math.floor(Math.random()*100000)+(k++);await putBlob(fid,p.blob);files.push({id:fid,name:p.name||title,type:p.type||p.blob.type||'application/octet-stream'});att.push({t:'f',id:fid})}
+ items.unshift({id,title,text:notes[0]||'',notes,when:today()+'T09:00',cat:'Входящие',num:0,imp:0,repeat:'',rn:1,ru:'d',done:false,links:[],files,att,tags:[],mt:'',me:'',u:Date.now()});
+ lset('items',items);lset('cats',cats);lset('dirty',1);return title}
+
+function initNote(R){const q=s=>R.querySelector(s),msg=(t,e)=>{q('.x-msg').textContent=t;q('.x-msg').className='msg x-msg'+(e?' err':'')};
+q('.x-save').onclick=async()=>{const t=q('.x-tx').value.trim();if(!t){msg('Сначала напишите заметку.',1);q('.x-tx').focus();return}
+ try{const title=await addReminder('Заметка',[t],null);q('.x-tx').value='';msg('✓ Сохранено: '+title)}catch(e){msg('Не удалось сохранить: '+e.message,1)}}}
+initNote(document.getElementById('root'));</script></body></html>
