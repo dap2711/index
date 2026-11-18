@@ -752,7 +752,14 @@ async function wsFiles() {
 }
 
 
-/* CSV */
+ const wsHtml=()=>`<div style="margin-top:16px"><b>Синхронизация</b><div class="mu" style="margin:4px 0 8px;font-size:13px">Между устройствами через Google Таблицы и Диск.</div><input id="wsu" placeholder="Ссылка /exec из Google Apps Script" value="${esc(wsc?wsc.u:'')}" style="width:100%;margin-bottom:6px"><input id="wsp" type="password" placeholder="Пароль из скрипта" value="${esc(wsc?wsc.p:'')}" style="width:100%;margin-bottom:8px"><div class="row"><button type="button" class="p" id="wso">${wsc?'Сохранить и синхронизировать':'Включить'}</button>${wsc?'<button type="button" id="wsx">Отключить</button>':''}</div><div class="mu" id="wsm" style="font-size:13px;margin-top:6px"></div></div>`;
+function wsBind(){$('#wso').onclick=()=>{const u=$('#wsu').value.trim(),p=$('#wsp').value;if(!u||!p){wsMsg('Укажите адрес и пароль');return}wsc={u,p};ls.set('nap_sync',wsc);wsDirty=true;wsMsg('Синхронизирую…');wsSync(true)};const x=$('#wsx');if(x)x.onclick=()=>{wsc=null;ls.set('nap_sync',null);wsMsg('Отключено');$('#sy').textContent='Только на этом устройстве'}}
+setInterval(()=>{if(!document.hidden)wsSync()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)wsSync()});
+setTimeout(()=>wsSync(),800);
+
+
+
+CSV */
 const CSVC=['Название','Заметки','Дата','Время','Категория','Раздел дня','Важность','Повтор','Выполнено','id'];
 const csvEsc=v=>{v=String(v==null?'':v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
 function csvExport(){const rows=[CSVC].concat(items.map(r=>{const w=r.when||'';return[r.title||'',nlist(r).join('\n'),w.slice(0,10),w.slice(11,16),r.cat?catLabel(r.cat):'',r.num?SL[r.num]||'':'',(IM[r.imp||0]||IM[0])[1],r.repeat||'',r.done?'да':'нет',r.id]}));
