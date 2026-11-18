@@ -759,7 +759,7 @@ setTimeout(()=>wsSync(),800);
 
 
 
-CSV */
+/* CSV */
 const CSVC=['Название','Заметки','Дата','Время','Категория','Раздел дня','Важность','Повтор','Выполнено','id'];
 const csvEsc=v=>{v=String(v==null?'':v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
 function csvExport(){const rows=[CSVC].concat(items.map(r=>{const w=r.when||'';return[r.title||'',nlist(r).join('\n'),w.slice(0,10),w.slice(11,16),r.cat?catLabel(r.cat):'',r.num?SL[r.num]||'':'',(IM[r.imp||0]||IM[0])[1],r.repeat||'',r.done?'да':'нет',r.id]}));
