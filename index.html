@@ -174,6 +174,19 @@ details summary{cursor:pointer;font-weight:700;color:var(--ac)}
 #om .cbox{max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .pchk{flex:0 0 auto;width:28px;height:28px;border-radius:50%;border:2px solid var(--ac);background:transparent;padding:0;color:#fff;font-size:16px;line-height:1;font-weight:700}.pchk.on{background:var(--ac)}
 #ps summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;color:var(--tx);font-weight:600;padding:9px 2px;border-top:1px solid var(--bd)}#ps summary::-webkit-details-marker{display:none}#ps summary::before{content:'▸';color:var(--ac)}#ps details[open]>summary::before{content:'▾'}#ps summary span{flex:1}
+
+.nmore{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;margin:4px 0 2px;border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:10px;font-size:16px;cursor:pointer}
+.nbd{font-size:12px;background:var(--ac);color:#fff;border-radius:9px;padding:1px 7px;line-height:16px}
+.card .xhid{display:none!important}
+.card.nall .xhid{display:flex!important}
+.sa-l,.sa-r{display:none;position:absolute;top:0;bottom:0;align-items:center;z-index:0}
+.sa-l{left:0;width:64px;justify-content:center;background:var(--ac);color:#fff;font-size:20px}
+.sa-r{right:0;width:192px}
+.sa-r button{flex:1;height:100%;border:0;background:var(--bd);font-size:20px;cursor:pointer}
+.sa-r button[data-a="del"]{background:var(--rd)}
+.cin{position:relative;z-index:1;background:inherit;transition:transform .2s ease}
+.cin.drag{transition:none}
+.touch .card{padding:0;overflow:hidden;position:relative}.touch .cin{padding:10px 12px;touch-action:pan-y}.touch .sa-l,.touch .sa-r{display:flex}
 </style>
 </head>
 <body>
@@ -366,10 +379,11 @@ const mcfg=()=>{const c=ls.get('nap_mailcfg',null);return c&&c.url&&c.secret?c:n
 let mailT=null;
 function mailSync(){clearTimeout(mailT);mailT=setTimeout(doMail,1500)}
 async function doMail(){const c=mcfg();if(!c)return;const prev=ls.get('nap_mailpushed',{}),now={};
-const post=d=>fetch(c.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...d,secret:c.secret})}).catch(()=>{});
+const post=d=>fetch(c.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...d,secret:c.secret})}).then(()=>true).catch(()=>false);let fail=0;
 for(const r of items){if(!r.mt||!r.when||r.done)continue;const at=new Date(r.when.slice(0,10)+'T'+r.mt).toISOString(),notes=(r.notes&&r.notes.length?r.notes:(r.text?[r.text]:[])).join(String.fromCharCode(10)),sig=r.title+'|'+notes+'|'+at;now[r.id]=sig;
-if(prev[r.id]!==sig)await post({action:'upsert',id:r.id,title:r.title,notes,at})}
-for(const id in prev){if(!now[id])await post({action:'delete',id})}
+if(prev[r.id]!==sig){if(!await post({action:'upsert',id:r.id,title:r.title,notes,at,me:r.me||''})){now[r.id]='';fail++}}}
+for(const id in prev){if(!(id in now)){if(!await post({action:'delete',id})){now[id]=prev[id];fail++}}}
+if(fail)toast('Письмо не отправлено (нет связи). Повторим при следующей синхронизации.');
 ls.set('nap_mailpushed',now)}
 
 /* статистика нажатий: считается в браузере, раз в месяц уходит письмом через скрипт */
@@ -541,7 +555,7 @@ $('#om').classList.remove('open');done&&done(full)};upd();$('#ncn').focus()}
 const feedMedia=r=>{const L=attList(r).filter(a=>a.t==='l'?/\.(mp4|webm|mov|m4v|ogv)$/i.test(a.u.split('?')[0]):/^(image|video)/.test(ft(a.f)||''));
 return L.length?`<div class="mstrip">${L.map(a=>a.t==='l'?`<div>${media(a.u)}</div>`:`<div class="fm" data-f="${a.f.id}" data-t="${esc(ft(a.f))}"></div>`).join('')}</div>`:''};
 const dkey=t=>loc(new Date(t)).slice(0,10);
-const archCard=r=>`<div class="card done" data-id="${r.id}"><div class="cr"><div class="tile">${r.cat?catIcon(r.cat):'📝'}</div><div><div class="ct1">${esc(r.title)}</div>${(r.notes&&r.notes.length?r.notes:r.text?[r.text]:[]).map((t,i)=>`<div class="ct2 fn"><span class="fnn">${i+1}</span><span class="fnt">${esc(t)}</span></div>`).join('')}${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([r.when?'Было на '+shD(r.when.slice(0,10)):'',r.links.length?'🔗'+r.links.length:''].filter(Boolean).join(' · '))}</div><div class="ca"><button type="button" data-a="done" title="Вернуть в ленту" aria-label="Вернуть в ленту">↩</button><button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div></div>`;
+const archCard=r=>`<div class="card done" data-id="${r.id}"><div class="sa-l" aria-hidden="true"><i class="ti ti-check"></i></div><div class="sa-r"><button type="button" data-a="move" aria-label="Перенести на следующий день">➡️</button><button type="button" data-a="edit" aria-label="Редактировать">✏️</button><button type="button" data-a="del" aria-label="Удалить">🗑</button></div><div class="cin"><div class="cr"><div class="tile">${r.cat?catIcon(r.cat):'📝'}</div><div><div class="ct1">${esc(r.title)}</div>${(r.notes&&r.notes.length?r.notes:r.text?[r.text]:[]).map((t,i)=>`<div class="ct2 fn"><span class="fnn">${i+1}</span><span class="fnt">${esc(t)}</span></div>`).join('')}${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([r.when?'Было на '+shD(r.when.slice(0,10)):'',r.links.length?'🔗'+r.links.length:''].filter(Boolean).join(' · '))}</div><div class="ca"><button type="button" data-a="done" title="Вернуть в ленту" aria-label="Вернуть в ленту">↩</button><button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div></div></div>`;
 function archHtml(q){const A=items.filter(r=>r.done&&(!q||hay(r).includes(q))).sort((x,y)=>(y.doneAt||0)-(x.doneAt||0));
 let h=`<div class="dcap">Выполненные · хранятся 6 месяцев · видео, звук, фото и файлы удалены</div>`;
 if(!A.length)return h+'<p class="mu">'+(q?'Ничего не найдено.':'Здесь пока пусто.')+'</p>';
@@ -558,10 +572,9 @@ const dlbl=k=>{const d=new Date(k+'T00:00'),t0=loc(new Date()).slice(0,10);retur
 const skipWE=(k,n)=>{if(n!==2&&n!==4)return k;let d=k;while(isWE(d))d=addD(d,1);return d};
 const missed=r=>!r.done&&r.when&&r.when.slice(0,10)<loc(new Date()).slice(0,10);
 const SI={0:'📝',1:'🌅',2:'💼',3:'☀️',4:'🧸',5:'🌙'};
-const ch=r=>`<div class="card ${r.done?'done':''} ${missed(r)?'miss':''}" data-id="${r.id}">
-<div class="cr"><div class="tile" title="${esc(r.cat?catLabel(r.cat):'Без категории')}">${r.cat?catIcon(r.cat):'📝'}</div>
+const ch=r=>`<div class="card ${r.done?'done':''} ${missed(r)?'miss':''}" data-id="${r.id}"><div class="sa-l" aria-hidden="true"><i class="ti ti-check"></i></div><div class="sa-r"><button type="button" data-a="move" aria-label="Перенести на следующий день">➡️</button><button type="button" data-a="edit" aria-label="Редактировать">✏️</button><button type="button" data-a="del" aria-label="Удалить">🗑</button></div><div class="cin"><div class="cr"><div class="tile" title="${esc(r.cat?catLabel(r.cat):'Без категории')}">${r.cat?catIcon(r.cat):'📝'}</div>
 <div><div class="ct1">${esc(r.title)}</div>${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([showDate&&r.when?dlbl(r.when.slice(0,10)):'',r.mt?'✉ '+r.mt:'',(n=>n?'🔗'+n:'')(r.links.filter(u=>!isMap(u)).length),(n=>n?'📍'+n:'')(r.links.filter(isMap).length),r.files.length?'📎'+r.files.length:''].filter(Boolean).join(' · '))}</div>
-<div class="ca">${r.done?'':'<span class="mvs"><button type="button" data-mv="-1" title="Выше" aria-label="Выше">▲</button><button type="button" data-mv="1" title="Ниже" aria-label="Ниже">▼</button></span>'}<button type="button" data-a="done" title="${r.done?'Вернуть':'Готово'}" aria-label="${r.done?'Вернуть':'Готово'}">${r.done?'↩':'✓'}</button><button type="button" data-a="edit" title="Редактировать" aria-label="Редактировать">✏️</button>${r.repeat?`<span class="ci" title="${esc(repTxt(r))}" aria-label="${esc(repTxt(r))}">🔁</span>`:(r.when?'<button type="button" data-a="move" title="Перенести на следующий день" aria-label="Перенести на следующий день">➡️</button>':'')}<button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div><div class="cnotes">${nlist(r).map((t,i)=>`<div class="ct2 fn ${pdone(r,i)?'nd':''}${isPr(r)&&!dueToday(r,i)?' nnd':''}"${(r.det||[])[i]?` data-det="${i}"`:''}>${isPr(r)&&!r.done?`<button type="button" class="pchk${pdone(r,i)?' on':''}" data-na="done" data-ni="${i}" title="Отметить выполненным" aria-label="Отметить выполненным">${pdone(r,i)?'✓':''}</button>`:`<span class="fnn">${i+1}</span>`}<span class="fnt">${esc(t)}</span></div>`).join('')}</div>${(x=>x?`<div class="md">${x}</div>`:'')(feedAudio(r))}${feedMedia(r)}</div>`;
+<div class="ca">${r.done?'':'<span class="mvs"><button type="button" data-mv="-1" title="Выше" aria-label="Выше">▲</button><button type="button" data-mv="1" title="Ниже" aria-label="Ниже">▼</button></span>'}<button type="button" data-a="done" title="${r.done?'Вернуть':'Готово'}" aria-label="${r.done?'Вернуть':'Готово'}">${r.done?'↩':'✓'}</button><button type="button" data-a="edit" title="Редактировать" aria-label="Редактировать">✏️</button>${r.repeat?`<span class="ci" title="${esc(repTxt(r))}" aria-label="${esc(repTxt(r))}">🔁</span>`:(r.when?'<button type="button" data-a="move" title="Перенести на следующий день" aria-label="Перенести на следующий день">➡️</button>':'')}<button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div><div class="cnotes">${nlist(r).map((t,i)=>`<div class="ct2 fn ${pdone(r,i)?'nd':''}${isPr(r)&&!dueToday(r,i)?' nnd':''}${i>=3?' xhid':''}"${(r.det||[])[i]?` data-det="${i}"`:''}>${isPr(r)&&!r.done?`<button type="button" class="pchk${pdone(r,i)?' on':''}" data-na="done" data-ni="${i}" title="Отметить выполненным" aria-label="Отметить выполненным">${pdone(r,i)?'✓':''}</button>`:`<span class="fnn">${i+1}</span>`}<span class="fnt">${esc(t)}</span></div>`).join('')}</div>${nlist(r).length>3?`<button type="button" class="nmore" aria-label="Показать все подзадачи, всего ${nlist(r).length}">⋯<span class="nbd">${nlist(r).length}</span></button>`:''}${(x=>x?`<div class="md">${x}</div>`:'')(feedAudio(r))}${feedMedia(r)}</div></div>`;
 function catUI(){const live=items.filter(r=>!r.done),c=n=>live.filter(r=>r.cat===n).length;
 const nv=(on,attr,ic,lab,n,x)=>`<div class="row" style="flex-wrap:nowrap"><button type="button" class="nv ${on?'on':''}" ${attr}><span>${ic} ${esc(lab)}</span><span>${n}</span></button>${x||''}</div>`,sep='<div class="cl-sep"></div>';
 const others=cats.filter(n=>n!=='Входящие');
@@ -611,6 +624,29 @@ if(!base.length&&!U.length)h+='<p class="mu">'+(q?'Ничего не найде�
 $('#list').innerHTML=h;hooks($('#list'));if($('#ps').classList.contains('open'))renderPr();
 document.querySelectorAll('.dg').forEach(d=>d.addEventListener('toggle',()=>{const key=mode+d.dataset.k;d.open?openD.add(key):openD.delete(key)}));
 document.querySelectorAll('.card[data-id]').forEach(c=>{c.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>act(c.dataset.id,b.dataset.a,c));c.querySelectorAll('[data-na]').forEach(b=>b.onclick=()=>noteOp(c.dataset.id,+b.dataset.ni,b.dataset.na));c.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>moveCard(c,+b.dataset.mv));c.onclick=e=>{if(e.target.closest('button,a,audio,video'))return;openDetail(c.dataset.id)}});
+}
+/* подзадачи: показать все / свернуть */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.nmore');if(!b)return;e.stopPropagation();b.closest('.card').classList.toggle('nall')},true);
+/* свайпы на сенсорных экранах (телефон, планшет): вправо — выполнено, влево — действия */
+const SWS={sw:0};
+const TCH=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+document.documentElement.classList.toggle('touch',TCH);
+if(TCH){
+ const SW=192,TH=64;let st=null;
+ const snap=(s,v)=>{s.cin.style.transform=v?'translateX('+v+'px)':'';s.cin.dataset.open=v?'1':'0'};
+ document.addEventListener('touchstart',e=>{const cin=e.target.closest&&e.target.closest('.cin');if(!cin||e.target.closest('button,a,input,textarea,select,audio,video,iframe,summary,details,[data-det]'))return;const t=e.touches[0];st={cin,card:cin.parentElement,sx:t.clientX,sy:t.clientY,dx:0,drag:false,open:cin.dataset.open==='1'}},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!st)return;const t=e.touches[0],dx=t.clientX-st.sx,dy=t.clientY-st.sy;
+  if(!st.drag){if(Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx)){st=null;return}if(Math.abs(dx)<8)return;st.drag=true;st.cin.classList.add('drag')}
+  if(e.cancelable)e.preventDefault();
+  let v=dx+(st.open?-SW:0);v=Math.max(-SW-16,Math.min(TH+16,v));st.dx=v;st.cin.style.transform='translateX('+v+'px)'},{passive:false});
+ const end=()=>{if(!st)return;const s=st;st=null;s.cin.classList.remove('drag');
+  if(!s.drag){if(s.open){snap(s,0);SWS.sw=Date.now()}return}
+  SWS.sw=Date.now();
+  if(s.dx>TH/2&&!s.open){snap(s,0);const d=s.card.querySelector('.ca [data-a="done"]');if(d)d.click()}
+  else if(s.dx<-SW/2){snap(s,-SW)}
+  else{snap(s,0)}};
+ document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
+ document.addEventListener('click',e=>{if(Date.now()-SWS.sw<350){e.stopPropagation();e.preventDefault()}},true);
 }
 function hooks(root){
 root.querySelectorAll('.fm').forEach(async el=>{const blob=await get(el.dataset.f);if(!blob){el.innerHTML='<span class="mu">Файл хранится на другом устройстве</span>';return}const u=URL.createObjectURL(blob),t=el.dataset.t;
