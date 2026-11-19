@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta name="robots" id="robotsMeta" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Напоминалка</title>
 <style>
@@ -110,7 +111,7 @@ body{font-family:Roboto,"Segoe UI",system-ui,sans-serif}
 .md2{flex:0 0 auto;padding:0 16px}.md2 b{font-size:15px}
 .card[data-id]{cursor:pointer}
 .cbox.dbox{width:min(100%,520px);max-height:88vh;overflow:auto}#dti{font-weight:700;font-size:17px}
-.nrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}.nrow textarea{flex:1}.nadd{font-size:20px;padding:6px 12px}
+.nrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}.nrow textarea{flex:1}.nadd{font-size:20px;padding:6px 12px}.nrp{width:auto;flex:none;font-size:12px;padding:4px 6px}.nnd{display:none}
 details summary{cursor:pointer;font-weight:700;color:var(--ac)}
 .dg{margin-bottom:8px}.dg summary{display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;font-weight:700;color:var(--tx);padding:11px 14px;background:var(--cd);border:1px solid var(--cb);border-radius:14px;list-style:none}
 .dg summary::-webkit-details-marker{display:none}.dg summary::before{content:"▸";color:var(--ac);margin-right:2px}.dg[open] summary::before{content:"▾"}.dg summary span:first-child{flex:1}.dg[open] summary{margin-bottom:8px}
@@ -217,6 +218,10 @@ details summary{cursor:pointer;font-weight:700;color:var(--ac)}
 
 const $=s=>document.querySelector(s);
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function noIdx(){return ls.get('noIndex',true)!==false}
+function applyNoIdx(){const m=document.getElementById('robotsMeta');if(!m)return;m.setAttribute('content',noIdx()?'noindex, nofollow, noarchive, nosnippet, noimageindex':'index, follow')}
+function setNoIdx(v){ls.set('noIndex',!!v);applyNoIdx()}
+applyNoIdx();
 let items=ls.get('items',[]),cats=ls.get('cats',['Работа','Дом','Здоровье','Учёба','Покупки']),gone=ls.get('gone',{});
 const MD={exp:['Еда','Транспорт','Жильё','Здоровье','Развлечения','Прочее'],inc:['Зарплата','Подработка','Прочее']};
 let money=ls.get('money',null)||{};
@@ -400,7 +405,7 @@ setInterval(()=>{$('#bm').textContent=rec?'⏺':'🎙';icons()},700);
 function resetForm(){dictStop();voiceMode=false;$('#vb').style.display='none';editId=null;pend=[];keep=[];drop=[];['#ti','#ln'].forEach(s=>$(s).value='');renderNotes($('#nts'),[]);$('#rp').value='';$('#rn').value=1;$('#ru').value='d';rcShow();fillCats('');calSet('');
 $('#fh').textContent='Новое напоминание';$('#ad').textContent='Сохранить напоминание';$('#cn').style.display='none';showPend();icons()}
 $('#cn').onclick=()=>{resetForm();tg('r',false)};
-function edit(r){editId=r.id;drop=[];keep=[];pend=attList(r).map(a=>a.t==='l'?{lk:a.u}:{id:a.f.id,name:a.f.name,type:a.f.type,old:true});$('#ti').value=r.title;renderNotes($('#nts'),r.notes||(r.text?[r.text]:[]),r.nd);calSet(r.when,r.num,r.imp);if(!r.when){cal.d='';cal.n=0;cal.imp=0}cal.mt=r.mt||'';cal.me=r.me||ls.get('nap_mail','');calUI();
+function edit(r){editId=r.id;drop=[];keep=[];pend=attList(r).map(a=>a.t==='l'?{lk:a.u}:{id:a.f.id,name:a.f.name,type:a.f.type,old:true});$('#ti').value=r.title;renderNotes($('#nts'),r.notes||(r.text?[r.text]:[]),r.nd,r.nr);calSet(r.when,r.num,r.imp);if(!r.when){cal.d='';cal.n=0;cal.imp=0}cal.mt=r.mt||'';cal.me=r.me||ls.get('nap_mail','');calUI();
 $('#rp').value=r.repeat||'';$('#rn').value=r.rn||1;$('#ru').value=r.ru||'d';rcShow();fillCats(r.cat);$('#fh').textContent='Редактирование';$('#ad').textContent='Сохранить изменения';$('#cn').style.display='';showPend();icons();tg('r',true);$('#ti').focus()}
 $('#ad').onclick=async()=>{
 dictStop();if(rec)await new Promise(r=>stopRec(r));const title=$('#ti').value.trim();if(!title){$('#ti').focus();return}
@@ -408,7 +413,7 @@ for(const p of pend){if(p.blob)await put(p.id,p.blob)}
 for(const f of drop)await del(f.id);
 const r=items.find(x=>x.id===editId)||{id:'r'+Date.now(),done:false};
 const when=$('#wh').value,changed=r.when!==when,nd=!when,cs=$('#ct').value==='__new'?'':$('#ct').value,cat1=nd?(cs||'Входящие'):(cal.imp?'':(cs||(cal.n?'':'Входящие')));
-Object.assign(r,{title,num:(cal.imp||nd)?0:cal.n,imp:nd?0:cal.imp,mt:nd?'':cal.mt,me:(!nd&&cal.mt)?cal.me:'',notes:getNotes($('#nts')),nd:getND($('#nts')),det:(r.det&&r.det.length===getNotes($('#nts')).length)?r.det:[],text:getNotes($('#nts'))[0]||'',when,cat:cat1,repeat:nd?'':$('#rp').value,rn:+$('#rn').value||1,ru:$('#ru').value,lead:0,
+Object.assign(r,{title,num:(cal.imp||nd)?0:cal.n,imp:nd?0:cal.imp,mt:nd?'':cal.mt,me:(!nd&&cal.mt)?cal.me:'',notes:getNotes($('#nts')),nd:getND($('#nts')),nr:getNR($('#nts')),det:(r.det&&r.det.length===getNotes($('#nts')).length)?r.det:[],text:getNotes($('#nts'))[0]||'',when,cat:cat1,repeat:nd?'':$('#rp').value,rn:+$('#rn').value||1,ru:$('#ru').value,lead:0,
 tags:r.tags||[],links:pend.filter(p=>p.lk).map(p=>p.lk),
 files:pend.filter(p=>!p.lk).map(p=>({id:p.id,name:p.name,type:p.type})),att:pend.map(p=>p.lk?{t:'l',u:p.lk}:{t:'f',id:p.id}),u:Date.now()});
 if(changed||!editId){r.fired=false;r.snooze=''}
@@ -463,12 +468,13 @@ const m={'not-allowed':'Нет доступа к микрофону.','service-n
 sr.onend=()=>{if(srOn){try{sr.start()}catch(x){}}else dictUI()};
 srOn=true;try{sr.start()}catch(x){}dictUI()}
 function dictStop(){srOn=false;if(sr){try{sr.stop()}catch(x){}}sr=null;if(srT)srT.value=srT.value.trim();dictUI()}
-function renderNotes(el,notes,nd){if(!notes.length)notes=[''];nd=nd||[];
-el.innerHTML=notes.map((t,i)=>`<div class="nrow" data-d="${nd[i]?1:0}"><span class="nn">${i+1}</span><textarea class="nt" placeholder="${i?'Ещё заметка':'Заметка'}">${esc(t)}</textarea><span class="nmv"><button type="button" class="nup" aria-label="Выше" title="Выше">▲</button><button type="button" class="ndn" aria-label="Ниже" title="Ниже">▼</button></span><button type="button" class="ndict" title="Диктовать" aria-label="Диктовать">🗣</button>${i===0?'<button type="button" class="nadd" title="Добавить ещё заметку" aria-label="Добавить ещё заметку">＋</button>':''}</div>`).join('');
-const cur=()=>[...el.querySelectorAll('.nrow')].map(r=>({t:r.querySelector('.nt').value,d:r.dataset.d==='1'?1:0})),redo=a=>renderNotes(el,a.map(x=>x.t),a.map(x=>x.d));
+function renderNotes(el,notes,nd,nr){if(!notes.length)notes=[''];nd=nd||[];nr=nr||[];
+el.innerHTML=notes.map((t,i)=>`<div class="nrow" data-d="${nd[i]?1:0}"><span class="nn">${i+1}</span><textarea class="nt" placeholder="${i?'Ещё заметка':'Заметка'}">${esc(t)}</textarea><select class="nrp" aria-label="Периодичность" title="Периодичность"><option value="d"${(nr[i]||'d')==='d'?' selected':''}>Каждый день</option><option value="wd"${nr[i]==='wd'?' selected':''}>По будням</option><option value="o2"${nr[i]==='o2'?' selected':''}>Через день</option></select><span class="nmv"><button type="button" class="nup" aria-label="Выше" title="Выше">▲</button><button type="button" class="ndn" aria-label="Ниже" title="Ниже">▼</button></span><button type="button" class="ndict" title="Диктовать" aria-label="Диктовать">🗣</button>${i===0?'<button type="button" class="nadd" title="Добавить ещё заметку" aria-label="Добавить ещё заметку">＋</button>':''}</div>`).join('');
+const cur=()=>[...el.querySelectorAll('.nrow')].map(r=>({t:r.querySelector('.nt').value,d:r.dataset.d==='1'?1:0,p:r.querySelector('.nrp').value})),redo=a=>renderNotes(el,a.map(x=>x.t),a.map(x=>x.d),a.map(x=>x.p));
 el.querySelectorAll('.nrow').forEach((r,i)=>{const b=r.querySelector('.ndict'),t=r.querySelector('.nt');b._t=t;if(!SR)b.style.display='none';b.onclick=()=>{if(srOn&&srT===t)dictStop();else dictStart(t)};
 const mv=d=>{dictStop();const a=cur(),j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];redo(a)};r.querySelector('.nup').onclick=()=>mv(-1);r.querySelector('.ndn').onclick=()=>mv(1)});
-const a=el.querySelector('.nadd');if(a)a.onclick=()=>{dictStop();const c=cur();c.push({t:'',d:0});redo(c);const l=el.querySelectorAll('.nt');l[l.length-1].focus()}}
+const a=el.querySelector('.nadd');if(a)a.onclick=()=>{dictStop();const c=cur();c.push({t:'',d:0,p:'d'});redo(c);const l=el.querySelectorAll('.nt');l[l.length-1].focus()}}
+const getNR=el=>[...el.querySelectorAll('.nrow')].filter(r=>r.querySelector('.nt').value.trim()).map(r=>r.querySelector('.nrp').value);
 const getND=el=>[...el.querySelectorAll('.nrow')].filter(r=>r.querySelector('.nt').value.trim()).map(r=>r.dataset.d==='1'?1:0);
 const getNotes=el=>[...el.querySelectorAll('.nt')].map(x=>x.value.trim()).filter(Boolean);
 function closeD(){$('#dm').classList.remove('open');$('#dmb').innerHTML=''}
@@ -504,8 +510,8 @@ function initMaps(root){const els=[...root.querySelectorAll('.ymap')];if(!els.le
 loadYm(()=>{if(!window.ymaps||!window.ymaps.Map){els.forEach(e=>e.remove());return}
 els.forEach(e=>{try{const c=[+e.dataset.lat,+e.dataset.lon],m=new window.ymaps.Map(e,{center:c,zoom:15,controls:['zoomControl']});m.geoObjects.add(new window.ymaps.Placemark(c))}catch(x){e.remove()}})})}
 const toMapUrl=t=>{t=t.trim();if(/^https?:\/\//i.test(t))return t;const m=t.match(/(-?\d{1,3}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)/);if(m){const la=+m[1],lo=+m[2];if(Math.abs(la)<=90&&Math.abs(lo)<=180)return`https://yandex.ru/maps/?pt=${lo},${la}&z=16&l=map`}return''};
-const linkHtml0=u=>`<div class="md"><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(u)}</a>${media(u)}</div>`;
-const linkHtml=u=>isMap(u)?`<div class="md">📍 <a href="${esc(u)}" target="_blank" rel="noopener noreferrer">Место на Яндекс Картах</a>${mapCoords(u)?` <span class="mu">${mapCoords(u)}</span>`:''}${mapLL(u)?`<div class="ymap" data-lat="${mapLL(u)[0]}" data-lon="${mapLL(u)[1]}"></div>`:''}</div>`:linkHtml0(u);
+const linkHtml0=u=>`<div class="md"><a href="${esc(u)}" target="_blank" rel="nofollow noopener noreferrer">${esc(u)}</a>${media(u)}</div>`;
+const linkHtml=u=>isMap(u)?`<div class="md">📍 <a href="${esc(u)}" target="_blank" rel="nofollow noopener noreferrer">Место на Яндекс Картах</a>${mapCoords(u)?` <span class="mu">${mapCoords(u)}</span>`:''}${mapLL(u)?`<div class="ymap" data-lat="${mapLL(u)[0]}" data-lon="${mapLL(u)[1]}"></div>`:''}</div>`:linkHtml0(u);
 const fileHtml=f=>`<div class="md mu">${esc(f.name)}<div class="fm" data-f="${f.id}" data-t="${esc(ft(f))}"></div></div>`;
 const CI={'Работа':'💼','Дом':'🏠','Здоровье':'❤️','Учёба':'📚','Покупки':'🛒','Входящие':'📥'};
 const catParts=c=>{c=c||'';const m=c.match(/^(\S{1,12})\s+([\s\S]+)$/u);if(m&&!/[\p{L}\p{N}]/u.test(m[1]))return{icon:m[1],label:m[2].trim()};return{icon:CI[c]||'🏷️',label:c}};
@@ -555,7 +561,7 @@ const SI={0:'📝',1:'🌅',2:'💼',3:'☀️',4:'🧸',5:'🌙'};
 const ch=r=>`<div class="card ${r.done?'done':''} ${missed(r)?'miss':''}" data-id="${r.id}">
 <div class="cr"><div class="tile" title="${esc(r.cat?catLabel(r.cat):'Без категории')}">${r.cat?catIcon(r.cat):'📝'}</div>
 <div><div class="ct1">${esc(r.title)}</div>${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([showDate&&r.when?dlbl(r.when.slice(0,10)):'',r.mt?'✉ '+r.mt:'',(n=>n?'🔗'+n:'')(r.links.filter(u=>!isMap(u)).length),(n=>n?'📍'+n:'')(r.links.filter(isMap).length),r.files.length?'📎'+r.files.length:''].filter(Boolean).join(' · '))}</div>
-<div class="ca">${r.done?'':'<span class="mvs"><button type="button" data-mv="-1" title="Выше" aria-label="Выше">▲</button><button type="button" data-mv="1" title="Ниже" aria-label="Ниже">▼</button></span>'}<button type="button" data-a="done" title="${r.done?'Вернуть':'Готово'}" aria-label="${r.done?'Вернуть':'Готово'}">${r.done?'↩':'✓'}</button><button type="button" data-a="edit" title="Редактировать" aria-label="Редактировать">✏️</button>${r.repeat?`<span class="ci" title="${esc(repTxt(r))}" aria-label="${esc(repTxt(r))}">🔁</span>`:(r.when?'<button type="button" data-a="move" title="Перенести на следующий день" aria-label="Перенести на следующий день">➡️</button>':'')}<button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div><div class="cnotes">${nlist(r).map((t,i)=>`<div class="ct2 fn ${(r.nd||[])[i]?'nd':''}"${(r.det||[])[i]?` data-det="${i}"`:''}>${isPr(r)&&!r.done?`<button type="button" class="pchk${(r.nd||[])[i]?' on':''}" data-na="done" data-ni="${i}" title="Отметить выполненным" aria-label="Отметить выполненным">${(r.nd||[])[i]?'✓':''}</button>`:`<span class="fnn">${i+1}</span>`}<span class="fnt">${esc(t)}</span></div>`).join('')}</div>${(x=>x?`<div class="md">${x}</div>`:'')(feedAudio(r))}${feedMedia(r)}</div>`;
+<div class="ca">${r.done?'':'<span class="mvs"><button type="button" data-mv="-1" title="Выше" aria-label="Выше">▲</button><button type="button" data-mv="1" title="Ниже" aria-label="Ниже">▼</button></span>'}<button type="button" data-a="done" title="${r.done?'Вернуть':'Готово'}" aria-label="${r.done?'Вернуть':'Готово'}">${r.done?'↩':'✓'}</button><button type="button" data-a="edit" title="Редактировать" aria-label="Редактировать">✏️</button>${r.repeat?`<span class="ci" title="${esc(repTxt(r))}" aria-label="${esc(repTxt(r))}">🔁</span>`:(r.when?'<button type="button" data-a="move" title="Перенести на следующий день" aria-label="Перенести на следующий день">➡️</button>':'')}<button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div><div class="cnotes">${nlist(r).map((t,i)=>`<div class="ct2 fn ${pdone(r,i)?'nd':''}${isPr(r)&&!dueToday(r,i)?' nnd':''}"${(r.det||[])[i]?` data-det="${i}"`:''}>${isPr(r)&&!r.done?`<button type="button" class="pchk${pdone(r,i)?' on':''}" data-na="done" data-ni="${i}" title="Отметить выполненным" aria-label="Отметить выполненным">${pdone(r,i)?'✓':''}</button>`:`<span class="fnn">${i+1}</span>`}<span class="fnt">${esc(t)}</span></div>`).join('')}</div>${(x=>x?`<div class="md">${x}</div>`:'')(feedAudio(r))}${feedMedia(r)}</div>`;
 function catUI(){const live=items.filter(r=>!r.done),c=n=>live.filter(r=>r.cat===n).length;
 const nv=(on,attr,ic,lab,n,x)=>`<div class="row" style="flex-wrap:nowrap"><button type="button" class="nv ${on?'on':''}" ${attr}><span>${ic} ${esc(lab)}</span><span>${n}</span></button>${x||''}</div>`,sep='<div class="cl-sep"></div>';
 const others=cats.filter(n=>n!=='Входящие');
@@ -629,10 +635,10 @@ $('#dcx').onclick=()=>$('#om').classList.remove('open');$('#dok').onclick=()=>{$
 go();return}
 save();render()}
 /* заметки и порядок */
-function noteOp(id,i,op){const r=items.find(x=>x.id===id);if(!r)return;const n=nlist(r).slice(),nd=n.map((_,j)=>(r.nd||[])[j]?1:0),dt=n.map((_,j)=>(r.det||[])[j]||''),sn=[n.slice(),nd.slice(),dt.slice()];
-if(op==='done')nd[i]=nd[i]?0:1;else if(op==='del'){n.splice(i,1);nd.splice(i,1);dt.splice(i,1)}else{const j=op==='up'?i-1:i+1;if(j<0||j>=n.length)return;[n[i],n[j]]=[n[j],n[i]];[nd[i],nd[j]]=[nd[j],nd[i]];[dt[i],dt[j]]=[dt[j],dt[i]]}
-const ap=(a,b,c)=>{r.notes=a;r.nd=b;r.det=c;r.text=a[0]||'';r.u=Date.now();save();render();if($('#dm').classList.contains('open')&&dId===id)openDetail(id)};
-ap(n,nd,dt);if(op==='done'&&isPr(r))logSet(r,i,n[i],!!nd[i]);if(op==='del')toastA('Заметка удалена','Отменить',()=>ap(sn[0],sn[1],sn[2]),7000)}
+function noteOp(id,i,op){const r=items.find(x=>x.id===id);if(!r)return;const n=nlist(r).slice(),nd=n.map((_,j)=>(r.nd||[])[j]?1:0),dt=n.map((_,j)=>(r.det||[])[j]||''),np=n.map((_,j)=>(r.nr||[])[j]||'d'),sn=[n.slice(),nd.slice(),dt.slice(),np.slice()];
+if(op==='done')nd[i]=(isPr(r)?pdone(r,i):nd[i])?0:1;else if(op==='del'){n.splice(i,1);nd.splice(i,1);dt.splice(i,1);np.splice(i,1)}else{const j=op==='up'?i-1:i+1;if(j<0||j>=n.length)return;[n[i],n[j]]=[n[j],n[i]];[nd[i],nd[j]]=[nd[j],nd[i]];[dt[i],dt[j]]=[dt[j],dt[i]];[np[i],np[j]]=[np[j],np[i]]}
+const ap=(a,b,c,e)=>{r.notes=a;r.nd=b;r.det=c;if(e)r.nr=e;r.text=a[0]||'';r.u=Date.now();save();render();if($('#dm').classList.contains('open')&&dId===id)openDetail(id)};
+ap(n,nd,dt,np);if(op==='done'&&isPr(r))logSet(r,i,n[i],!!nd[i]);if(op==='del')toastA('Заметка удалена','Отменить',()=>ap(sn[0],sn[1],sn[2],sn[3]),7000)}
 function moveCard(c,dir){const run=[c];let p=c.previousElementSibling;while(p&&p.dataset.id&&p.classList.contains('card')){run.unshift(p);p=p.previousElementSibling}
 let q=c.nextElementSibling;while(q&&q.dataset.id&&q.classList.contains('card')){run.push(q);q=q.nextElementSibling}
 const ids=run.map(x=>x.dataset.id),i=ids.indexOf(c.dataset.id),j=i+dir;if(j<0||j>=ids.length){toast('Дальше двигать некуда');return}
@@ -641,7 +647,7 @@ const ids=run.map(x=>x.dataset.id),i=ids.indexOf(c.dataset.id),j=i+dir;if(j<0||j
 const bkData=()=>JSON.stringify({app:'napominalka',v:1,at:new Date().toISOString(),items,gone,cats,money,catImg,plog,pvid});
 const bkName=()=>'Напоминалка-'+loc(new Date()).slice(0,10)+'.json',bkMark=()=>ls.set('bk_last',loc(new Date()).slice(0,10));
 function bkSave(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bkData()],{type:'application/json'}));a.download=bkName();document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);bkMark();toast('Копия сохранена в папку загрузок')}
-$('#bset').onclick=()=>{winModal('Настройка','<b>Резервная копия</b><div class="mu" style="margin:4px 0 10px;font-size:13px">Дела, категории и деньги. Фото, аудио и видео в копию не входят.</div><div class="row"><button type="button" id="bsv" title="Сохранить копию" aria-label="Сохранить копию" style="font-size:22px;padding:8px 16px">💾</button><button type="button" id="brs" title="Восстановить из копии" aria-label="Восстановить из копии" style="font-size:22px;padding:8px 16px">📂</button></div><div style="margin-top:16px"><b>Таблица CSV</b><div class="mu" style="margin:4px 0 10px;font-size:13px">Открывается в Excel и Google Таблицах. При импорте строки с известным id обновляются, остальные добавляются.</div><div class="row"><button type="button" id="csx">⬇ Экспорт</button><button type="button" id="csi">⬆ Импорт</button></div></div>'+wsHtml());wsBind();$('#csx').onclick=csvExport;$('#csi').onclick=()=>$('#csf').click();$('#bsv').onclick=bkSave;$('#brs').onclick=()=>$('#bfi').click()};
+$('#bset').onclick=()=>{winModal('Настройка','<b>Резервная копия</b><div class="mu" style="margin:4px 0 10px;font-size:13px">Дела, категории и деньги. Фото, аудио и видео в копию не входят.</div><div class="row"><button type="button" id="bsv" title="Сохранить копию" aria-label="Сохранить копию" style="font-size:22px;padding:8px 16px">💾</button><button type="button" id="brs" title="Восстановить из копии" aria-label="Восстановить из копии" style="font-size:22px;padding:8px 16px">📂</button></div><div style=\"margin-top:16px\"><label class=\"row\" style=\"gap:8px;align-items:center;cursor:pointer\"><input type=\"checkbox\" id=\"nix\" style=\"width:auto\"><b>Запретить поисковым роботам</b></label><div class=\"mu\" style=\"margin:4px 0 0;font-size:13px\">Страница не будет попадать в поиск Google, Яндекса и других сервисов.</div></div><div style="margin-top:16px"><b>Таблица CSV</b><div class="mu" style="margin:4px 0 10px;font-size:13px">Открывается в Excel и Google Таблицах. При импорте строки с известным id обновляются, остальные добавляются.</div><div class="row"><button type="button" id="csx">⬇ Экспорт</button><button type="button" id="csi">⬆ Импорт</button></div></div>'+wsHtml());wsBind();$('#csx').onclick=csvExport;$('#csi').onclick=()=>$('#csf').click();$('#bsv').onclick=bkSave;$('#brs').onclick=()=>$('#bfi').click();$('#nix').checked=noIdx();$('#nix').onchange=e=>setNoIdx(e.target.checked)};
 $('#bfi').onchange=e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;const fr=new FileReader();fr.onload=()=>{let o;try{o=JSON.parse(fr.result)}catch(x){}
 if(!o||o.app!=='napominalka'||!Array.isArray(o.items)){toast('Это не файл копии Напоминалки');return}
 if(!confirm('Объединить копию ('+o.items.length+' дел) с текущими данными? Более новые версии дел сохранятся.'))return;
@@ -661,7 +667,7 @@ if(m=u.match(/rutube\.ru\/(?:video|play\/embed)\/([0-9a-f]{32})/))return{t:'f',s
 if(/\.(mp4|webm|mov)(\?|$)/i.test(u))return{t:'v',s:u};return null}
 function openNoteDet(id,i){const r=items.find(x=>x.id===id),d=r&&r.det&&r.det[i];if(!d)return;const st=Array.isArray(d)?d:(d.steps||[]),k=pkKey(nlist(r)[i]);let h='';
 if(d.v){const u=pvid[k]||'',e=vidEmbed(u),sf=u.replace(/"/g,'');
-h+=`<div style="margin-bottom:12px"><input id="pvi" placeholder="Вставьте ссылку на видео (VK, YouTube, RuTube)" value="${esc(sf)}" style="width:100%;margin-bottom:8px"><div class="row"><button type="button" class="p" id="pvs">Вставить видео</button>${u?`<a class="btn" target="_blank" rel="noopener" href="${esc(sf)}" style="padding:8px 12px">Открыть</a><button type="button" id="pvx">Убрать</button>`:''}</div>${e?(e.t==='f'?`<iframe src="${esc(e.s)}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0;border-radius:12px;margin-top:10px;background:#000"></iframe>`:`<video src="${esc(e.s)}" controls playsinline style="width:100%;border-radius:12px;margin-top:10px"></video>`):(u?'<p class="mu" style="font-size:13px">Эту ссылку нельзя встроить. Нажмите «Открыть».</p>':'')}</div>`}
+h+=`<div style="margin-bottom:12px"><input id="pvi" placeholder="Вставьте ссылку на видео (VK, YouTube, RuTube)" value="${esc(sf)}" style="width:100%;margin-bottom:8px"><div class="row"><button type="button" class="p" id="pvs">Вставить видео</button>${u?`<a class="btn" target="_blank" rel="nofollow noopener" href="${esc(sf)}" style="padding:8px 12px">Открыть</a><button type="button" id="pvx">Убрать</button>`:''}</div>${e?(e.t==='f'?`<iframe src="${esc(e.s)}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0;border-radius:12px;margin-top:10px;background:#000"></iframe>`:`<video src="${esc(e.s)}" controls playsinline style="width:100%;border-radius:12px;margin-top:10px"></video>`):(u?'<p class="mu" style="font-size:13px">Эту ссылку нельзя встроить. Нажмите «Открыть».</p>':'')}</div>`}
 if(st.length&&!d.v)h+='<ol style="margin:6px 0 0;padding-left:20px">'+st.map(x=>'<li style="margin-bottom:8px">'+esc(x)+'</li>').join('')+'</ol>';
 winModal(nlist(r)[i],h);
 if(d.v){$('#pvs').onclick=()=>{const v=$('#pvi').value.trim();if(v)pvid[k]=v;else delete pvid[k];save();openNoteDet(id,i)};const x=$('#pvx');if(x)x.onclick=()=>{delete pvid[k];save();openNoteDet(id,i)};$('#pvi').onkeydown=ev=>{if(ev.key==='Enter')$('#pvs').click()}}}
@@ -669,12 +675,21 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 /* итоги практикума */
 const pkKey=t=>t.replace(/^[^A-Za-zА-Яа-яЁё0-9]+/,'').split(/[:,]/)[0].trim();
 function pkQty(t){let m;if(m=t.match(/(\d+)\s*сек/))return{v:+m[1],u:'s'};if(m=t.match(/(\d+)\s*подход\S*\s*по\s*(\d+)/))return{v:m[1]*m[2],u:'r'};if(m=t.match(/(\d+)\s*раз/g))return{v:m.reduce((a,x)=>a+parseInt(x),0),u:'r'};if(m=t.match(/(\d+)(?:[–-]\d+)?\s*мин/))return{v:+m[1],u:'m'};return null}
+const RPC={d:'каждый день',wd:'по будням',o2:'через день'};
+function ud(d){const[a,b,c]=d.split('-').map(Number);return Date.UTC(a,b-1,c)/864e5}
+function dueOn(c,d){if(c==='wd'){const w=new Date(ud(d)*864e5).getUTCDay();return w>0&&w<6}if(c==='o2')return Math.round(ud(d))%2===0;return true}
+function dueToday(r,i){return dueOn((r.nr||[])[i]||'d',loc(new Date()).slice(0,10))}
+function pdone(r,i){return isPr(r)?plog.some(x=>x.id===r.id+'|'+i+'|'+loc(new Date()).slice(0,10)):!!(r.nd||[])[i]}
+function nxDay(d){return new Date((ud(d)+1)*864e5).toISOString().slice(0,10)}
 function logSet(r,i,t,on){const d=loc(new Date()).slice(0,10),id=r.id+'|'+i+'|'+d;plog=plog.filter(x=>x.id!==id);if(on){const q=pkQty(t);plog.push({id,d,k:pkKey(t),q,u:Date.now()})}save()}
 const fmtQ=(u,v)=>u==='s'?(v>=60?Math.floor(v/60)+' мин '+(v%60?v%60+' сек':''):v+' сек'):u==='m'?(v>=60?Math.floor(v/60)+' ч '+(v%60?v%60+' мин':''):v+' мин'):v+' повт.';
 
 const dAgo=n=>loc(new Date(Date.now()-n*864e5)).slice(0,10);
 function renderStats(){const t=dAgo(0),from=pPer?dAgo(pPer-1):'',L=plog.filter(x=>x.d>=from),days=new Set(plog.map(x=>x.d));
 let st=0;for(let n=days.has(t)?0:1;days.has(dAgo(n));n++)st++;
+const pcode={};items.filter(isPr).forEach(r=>nlist(r).forEach((tx,i)=>{const k=pkKey(tx);if(!(k in pcode))pcode[k]=(r.nr||[])[i]||'d'}));
+const kcOf=k=>pcode[k]||'d',pStart=pPer?from:(plog.length?plog.map(x=>x.d).sort()[0]:t);
+const planOf=k=>{let c=0;for(let d=pStart;d<=t;d=nxDay(d))if(dueOn(kcOf(k),d))c++;return c};
 const g={};L.forEach(x=>{(g[x.k]=g[x.k]||[]).push(x)});const ks=Object.keys(g).sort((a,b)=>g[b].length-g[a].length);
 const cnt=[];for(let n=13;n>=0;n--){const d=dAgo(n);cnt.push([d,plog.filter(x=>x.d===d).length])}const mx=Math.max(1,...cnt.map(c=>c[1]));
 const PERS=[[1,'Сегодня'],[7,'7 дней'],[30,'30 дней'],[0,'Всё']];
@@ -684,7 +699,7 @@ let h=`<div class="mtabs">${PERS.map(p=>`<button type="button" data-pp="${p[0]}"
 <div style="display:flex;align-items:flex-end;gap:3px;height:70px;padding:0 2px">${cnt.map(c=>`<div title="${shD(c[0])}: ${c[1]}" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%"><span style="font-size:10px" class="mu">${c[1]||''}</span><i style="display:block;width:100%;min-height:2px;height:${Math.round(c[1]/mx*44)+2}px;background:${c[1]?'var(--ac)':'var(--bd)'};border-radius:3px"></i></div>`).join('')}</div>
 <div class="row mu" style="justify-content:space-between;font-size:11px;padding:2px 2px 8px"><span>${shD(cnt[0][0])}</span><span>${shD(cnt[13][0])}</span></div>`;
 h+=ks.length?ks.map(k=>{const A=g[k].slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(a.u<b.u?1:-1)),q={};A.forEach(x=>{if(x.q)q[x.q.u]=(q[x.q.u]||0)+x.q.v});const qs=Object.entries(q).map(([u,v])=>fmtQ(u,v)).join(', '),dd=new Set(A.map(x=>x.d)).size;
-return `<details class="pkd" data-k="${esc(k)}"><summary><span>${esc(k)}</span><b>${A.length}</b></summary><div class="mu" style="font-size:13px;padding:0 0 4px 20px">Дней: ${dd}${qs?' · объём: '+esc(qs):''} · последний раз: ${shD(A[0].d)}</div>${A.map(x=>`<div class="mer"><span class="mu">${shD(x.d)}</span><span class="mea">${x.q?esc(fmtQ(x.q.u,x.q.v)):'✓'}</span></div>`).join('')}</details>`}).join(''):'<p class="mu">За этот период ничего не отмечено. Нажмите на кружок слева у подзадачи, когда сделаете её.</p>';
+return `<details class="pkd" data-k="${esc(k)}"><summary><span>${esc(k)}</span><b>${A.length}</b></summary><div class="mu" style="font-size:13px;padding:0 0 4px 20px">${RPC[kcOf(k)]}: выполнено ${dd} из ${planOf(k)}${qs?' · объём: '+esc(qs):''} · последний раз: ${shD(A[0].d)}</div>${A.map(x=>`<div class="mer"><span class="mu">${shD(x.d)}</span><span class="mea">${x.q?esc(fmtQ(x.q.u,x.q.v)):'✓'}</span></div>`).join('')}</details>`}).join(''):'<p class="mu">За этот период ничего не отмечено. Нажмите на кружок слева у подзадачи, когда сделаете её.</p>';
 $('#pbody').innerHTML=h;
 document.querySelectorAll('#pbody [data-pp]').forEach(b=>b.onclick=()=>{pPer=+b.dataset.pp;renderStats()});
 document.querySelectorAll('#pbody .pkd').forEach(d=>{d.open=!!mOpen['pk'+d.dataset.k];d.ontoggle=()=>{mOpen['pk'+d.dataset.k]=d.open}})}
