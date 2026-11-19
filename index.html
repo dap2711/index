@@ -704,32 +704,40 @@ async function wsCall(body) {
   return j;
 }
 
+let wsAgain = false;
 async function wsSync(manual) {
-  if (!wsc || wsBusy) return; wsBusy = true;
+  if (!wsc) return;
+  if (wsBusy) { wsAgain = true; return; }
+  wsBusy = true;
+  const dirty = wsDirty; wsDirty = false;
   try {
     const a = await wsCall({ data: null }), b0 = wsSig();
     if (a.data) {
       merge(a.data);
-      if (a.data.menu30 && !wsDirty) localStorage.setItem('menu30', a.data.menu30);
+      if (a.data.menu30 && !dirty) localStorage.setItem('menu30', a.data.menu30);
     }
     const ch = wsSig() !== b0;
     if (ch) {
-      ls.set('items', items); ls.set('cats', cats); ls.set('gone', gone); ls.set('money', money); ls.set('catimg', catImg); ls.set('plog', plog); ls.set('pvid', pvid);
+      ls.set('items', items); ls.set('cats', cats); ls.set('gone', gone); ls.set('money', money);
+      ls.set('catimg', catImg); ls.set('plog', plog); ls.set('pvid', pvid);
       render(); if ($('#ms').classList.contains('open')) mList();
     }
-    if (ch || wsDirty || !a.data || manual) {
+    if (ch || dirty || !a.data || manual) {
       const fullPayload = JSON.parse(payload());
       fullPayload.menu30 = localStorage.getItem('menu30') || '';
       await wsCall({ data: fullPayload });
-      wsDirty = false;
     }
     sy(1);
     const tm = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
     wsMsg('✓ Синхронизировано в ' + tm);
     try { const fs = await wsFiles(); wsMsg('✓ Синхронизировано в ' + tm + (fs ? ' · ' + fs : '')); }
     catch (e) { wsMsg('✓ Дела синхронизированы в ' + tm + '. Файлы: ' + e.message); }
-  } catch (e) { sy(0); wsMsg('Не удалось: ' + e.message); }
+  } catch (e) {
+    wsDirty = wsDirty || dirty;
+    sy(0); wsMsg('Не удалось: ' + e.message);
+  }
   wsBusy = false;
+  if (wsAgain) { wsAgain = false; setTimeout(() => wsSync(), 500); }
 }
 
 async function wsFiles() {
