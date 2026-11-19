@@ -186,7 +186,7 @@ details summary{cursor:pointer;font-weight:700;color:var(--ac)}
 .sa-r button[data-a="del"]{background:var(--rd)}
 .cin{position:relative;z-index:1;background:inherit;transition:transform .2s ease}
 .cin.drag{transition:none}
-.touch .card{padding:0;overflow:hidden;position:relative}.touch .cin{padding:10px 12px;touch-action:pan-y}.touch .sa-l,.touch .sa-r{display:flex}
+.touch .card{padding:0;overflow:hidden;position:relative}.touch .cin{padding:10px 12px;touch-action:pan-y}.touch .sa-l,.touch .sa-r{display:flex}.touch .ca .mvs,.touch .ca button{display:none}
 </style>
 </head>
 <body>
@@ -642,7 +642,7 @@ if(TCH){
  const end=()=>{if(!st)return;const s=st;st=null;s.cin.classList.remove('drag');
   if(!s.drag){if(s.open){snap(s,0);SWS.sw=Date.now()}return}
   SWS.sw=Date.now();
-  if(s.dx>TH/2&&!s.open){snap(s,0);const d=s.card.querySelector('.ca [data-a="done"]');if(d)d.click()}
+  if(s.dx>TH/2&&!s.open){snap(s,0);const d=s.card.querySelector('.ca [data-a="done"]');SWS.sw=0;if(d)d.click();SWS.sw=Date.now()}
   else if(s.dx<-SW/2){snap(s,-SW)}
   else{snap(s,0)}};
  document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
