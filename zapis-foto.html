@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"><title>Фото</title><style>
+:root{--bg:#fff;--card:#f4f6f3;--tx:#1b1f1c;--mu:#6a736d;--ac:#2e7d5b;--rd:#d93025;--bd:#dfe4de;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121a16;--card:#1b2621;--tx:#e6efe9;--mu:#9baba1;--ac:#4cc79a;--rd:#ff6b61;--bd:#2c3b33;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--tx);font:16px/1.45 Roboto,"Segoe UI",system-ui,sans-serif;padding:max(8px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom))}
+.top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.top a{padding:8px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);text-decoration:none;font-weight:700}
+.top a.on{background:var(--ac);border-color:var(--ac);color:#fff}
+h1{font-size:20px;margin:6px 0 4px}.hint{color:var(--mu);margin-bottom:12px}
+.big{display:block;width:100%;height:30vh;min-height:150px;border:0;border-radius:24px;background:var(--ac);color:#fff;font-family:inherit;font-weight:700;font-size:clamp(22px,6vw,32px);line-height:1.2;padding:12px;margin-bottom:12px;cursor:pointer}
+.big.rec{background:var(--rd);animation:pl 1.3s ease-in-out infinite}
+.row3{display:flex;gap:8px;margin-bottom:12px}.row3 .small{flex:1;padding:14px 10px;font-size:17px}
+.savebtn{background:var(--ac)!important;color:#fff!important;border-color:var(--ac)!important;font-weight:700}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.th{position:relative}.th img{height:92px;width:auto;max-width:150px;border-radius:12px;display:block;object-fit:cover}.th button{position:absolute;top:4px;right:4px;border:0;border-radius:50%;width:26px;height:26px;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
+.big.sm{height:10vh;min-height:50px;font-size:clamp(18px,5vw,24px);border-radius:16px}
+.big.alt{background:var(--card);color:var(--tx);border:2px solid var(--ac)}
+@keyframes pl{50%{opacity:.78}}@media (prefers-reduced-motion:reduce){.big.rec{animation:none}}
+.small{padding:10px 16px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+audio{width:100%;margin-bottom:12px}
+textarea{width:100%;min-height:30vh;border:1px solid var(--bd);border-radius:16px;background:var(--card);color:var(--tx);font:inherit;padding:14px;margin-bottom:12px;resize:vertical}
+.msg{white-space:pre-line;min-height:1.5em;font-weight:700;color:var(--ac)}.msg.err{color:var(--rd)}
+.panel{position:fixed;inset:0;background:var(--bg);padding:max(12px,env(safe-area-inset-top)) 14px 14px;overflow:auto;z-index:5}
+.panel[hidden],[hidden]{display:none!important}
+.split{display:flex;height:30vh;min-height:150px;border-radius:24px;overflow:hidden;margin-bottom:12px;background:var(--ac)}
+.half{flex:1;border:0;background:var(--ac);color:#fff;font-family:inherit;font-weight:700;font-size:clamp(20px,5.5vw,28px);line-height:1.2;padding:12px;cursor:pointer}.half+.half{border-left:2px solid rgba(255,255,255,.5)}
+.add{width:92px;height:92px;border:2px dashed var(--ac);border-radius:12px;background:transparent;color:var(--ac);font-size:32px;cursor:pointer}
+a.msg{display:block;text-decoration:none;cursor:pointer}a.msg:empty{display:none}
+</style><link rel="manifest" href="manifest-foto.json"><link rel="icon" href="icons/icon-foto-192.png"><link rel="apple-touch-icon" href="icons/icon-foto-180.png"><meta name="theme-color" content="#2e7d5b"></head><body><div id="root"><div class="split"><button type="button" class="half x-cam">📷 Снять фото</button><button type="button" class="half x-pick">🖼 Из галереи</button></div>
+<input class="x-fcam" type="file" accept="image/*" capture="environment" hidden><input class="x-ffile" type="file" accept="image/*" multiple hidden>
+<div class="thumbs x-thumbs"></div>
+<a class="msg x-msg" role="status"></a></div><script>
+const MAIN='index.html'; /* имя файла главной страницы Напоминалки на сайте */
+const P='';
+const lg=(k,d)=>{try{const v=localStorage.getItem(P+k);return v?JSON.parse(v):d}catch(e){return d}};
+const lset=(k,v)=>{const s=JSON.stringify(v);try{localStorage.setItem(P+k,s)}catch(e){throw new Error('браузер не разрешает сохранять данные сайта (проверьте приватный режим и блокировку данных сайтов)')}if(localStorage.getItem(P+k)!==s)throw new Error('данные не записались в хранилище браузера')};
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
+const numOf=(t,pre)=>{if(t.startsWith(pre+' ')){const m=t.slice(pre.length+1).match(/^(\d+)/);return m?+m[1]:0}return 0};
+const nextNum=pre=>Math.max(0,...lg('items',[]).filter(r=>r.cat==='Входящие').map(r=>numOf(r.title,pre)))+1;
+function idb(){return new Promise(res=>{let done=false;const fin=v=>{if(!done){done=true;res(v)}};setTimeout(()=>fin(null),6000);try{const o=indexedDB.open('nap',1);o.onupgradeneeded=()=>{if(!o.result.objectStoreNames.contains('b'))o.result.createObjectStore('b')};o.onsuccess=()=>fin(o.result);o.onerror=()=>fin(null);o.onblocked=()=>fin(null)}catch(e){fin(null)}})}
+async function putBlob(id,blob){const d=await idb();if(!d)throw new Error('хранилище файлов браузера недоступно (приватный режим или запрет данных сайтов)');return new Promise((res,rej)=>{try{const t=d.transaction('b','readwrite');t.objectStore('b').put(blob,id);t.oncomplete=res;t.onerror=()=>rej(t.error||new Error('не удалось записать файл'));t.onabort=()=>rej(t.error||new Error('запись файла отменена'))}catch(e){rej(e)}})}
+/* запись в Напоминалку: сегодня, категория «Входящие»; название «Фото 3 · 14:25» */
+async function addReminder(pre,parts,at){
+ const items=lg('items',[]);let cats=lg('cats',null);if(!cats)cats=['Работа','Дом','Здоровье','Учёба','Покупки'];if(!cats.includes('Входящие'))cats.push('Входящие');
+ const n=nextNum(pre),title=pre+' '+n+' · '+hm(at||new Date()),id='r'+Date.now()+Math.floor(Math.random()*1000),files=[],att=[];
+ let k=0;for(const p of parts){const fid='f'+Date.now()+Math.floor(Math.random()*100000)+(k++);await putBlob(fid,p.blob);files.push({id:fid,name:p.name||title,type:p.type||p.blob.type||'image/jpeg'});att.push({t:'f',id:fid})}
+ items.unshift({id,title,text:'',notes:[],when:today()+'T09:00',cat:'Входящие',num:0,imp:0,repeat:'',rn:1,ru:'d',done:false,links:[],files,att,tags:[],mt:'',me:'',u:Date.now()});
+ lset('items',items);lset('cats',cats);lset('dirty',1);return{id,title}}
+async function shrink(file,max){max=max||1600;try{const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});const k=Math.min(1,max/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(bmp.width*k));c.height=Math.max(1,Math.round(bmp.height*k));c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(b=>r(b||file),'image/jpeg',.85))}catch(e){return file}}
+function initPhotos(R){const q=s=>R.querySelector(s);let photos=[],busy=false;
+const msg=(t,err,href)=>{const m=q('.x-msg');m.textContent=t;m.className='msg x-msg'+(err?' err':'');if(href)m.href=href;else m.removeAttribute('href')};
+function sync(){const has=photos.length>0;q('.x-cam').textContent=has?'✓ Сохранить':'📷 Снять фото';q('.x-pick').textContent=has?'✓ Сохранить':'🖼 Из галереи';
+ q('.x-thumbs').innerHTML=photos.map((p,i)=>'<span class="th"><img src="'+p.url+'" alt=""><button type="button" data-i="'+i+'" aria-label="Убрать">✕</button></span>').join('')+(has?'<button type="button" class="add" aria-label="Добавить ещё фото">＋</button>':'');
+ q('.x-thumbs').querySelectorAll('.th button').forEach(b=>b.onclick=()=>{const p=photos.splice(+b.dataset.i,1)[0];URL.revokeObjectURL(p.url);sync()});
+ const ad=q('.x-thumbs .add');if(ad)ad.onclick=()=>q('.x-ffile').click()}
+const addFiles=async files=>{msg('');for(const f of files){if(!f.type.startsWith('image/')&&!/\.(heic|heif|jpe?g|png|webp)$/i.test(f.name))continue;const b=await shrink(f);photos.push({blob:b,url:URL.createObjectURL(b)})}sync()};
+async function save(){if(busy||!photos.length)return;busy=true;try{const when=new Date(),parts=photos.map((p,i)=>({blob:p.blob,name:'Фото '+(i+1)+' · '+hm(when),type:p.blob.type||'image/jpeg'}));
+ const r=await addReminder('Фото',parts,when);photos.forEach(p=>URL.revokeObjectURL(p.url));photos=[];sync();msg('✓ Сохранено: '+r.title,0,MAIN+'#open='+encodeURIComponent(r.id))}catch(e){msg('Не удалось сохранить: '+e.message,1)}busy=false}
+q('.x-cam').onclick=()=>{if(photos.length)save();else q('.x-fcam').click()};
+q('.x-pick').onclick=()=>{if(photos.length)save();else q('.x-ffile').click()};
+q('.x-fcam').onchange=async e=>{await addFiles([...e.target.files]);e.target.value=''};
+q('.x-ffile').onchange=async e=>{await addFiles([...e.target.files]);e.target.value=''};
+sync()}
+initPhotos(document.getElementById('root'));</script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script></body></html>

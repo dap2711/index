@@ -1,0 +1,21 @@
+{
+ "name": "Аудио в Напоминалку",
+ "short_name": "Аудио",
+ "start_url": "zapis-audio.html",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#ffffff",
+ "theme_color": "#2e7d5b",
+ "icons": [
+  {
+   "src": "icons/icon-audio-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-audio-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

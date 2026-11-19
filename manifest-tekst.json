@@ -1,0 +1,21 @@
+{
+ "name": "Заметка в Напоминалку",
+ "short_name": "Заметка",
+ "start_url": "zapis-tekst.html",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#ffffff",
+ "theme_color": "#2e7d5b",
+ "icons": [
+  {
+   "src": "icons/icon-tekst-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-tekst-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}
