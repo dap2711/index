@@ -33,6 +33,7 @@ function doPost(e) {
   let d;
   try { d = JSON.parse(e.postData.contents); } catch (x) { return out('bad'); }
   if (d.secret !== SECRET) return out('forbidden');
+  ensureTriggers();
   const p = PropertiesService.getScriptProperties();
   const key = 'r_' + String(d.id).replace(/[^A-Za-z0-9_-]/g, '');
   if (d.action === 'stats') {
@@ -55,6 +56,13 @@ function doPost(e) {
     p.setProperty(key, JSON.stringify(rec));
   }
   return out('ok');
+}
+
+// Создаёт триггеры автоматически, если их ещё нет (отдельный шаг «setup» не нужен)
+function ensureTriggers() {
+  const have = ScriptApp.getProjectTriggers().map(function (t) { return t.getHandlerFunction(); });
+  if (have.indexOf('check') < 0) ScriptApp.newTrigger('check').timeBased().everyMinutes(5).create();
+  if (have.indexOf('monthlyReport') < 0) ScriptApp.newTrigger('monthlyReport').timeBased().onMonthDay(1).atHour(8).create();
 }
 
 function out(t) { return ContentService.createTextOutput(t); }
