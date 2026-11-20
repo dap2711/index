@@ -274,6 +274,11 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .btt th{font-size:14px}
 #cs{position:fixed;top:0;bottom:0;left:auto;right:0;width:min(88%,380px);max-width:none;max-height:none;border:0;border-left:1px solid var(--bd);border-radius:0;box-shadow:-8px 0 30px rgba(0,0,0,.2);display:block;transform:translateX(105%);transition:transform .25s ease;overflow:auto;z-index:70}
 #cs.open{transform:translateX(0)}
+.mnb{padding:6px 2px 10px}
+.mnt{font-size:14px;font-weight:600;margin:4px 2px 6px}
+.mnin{width:100%;box-sizing:border-box;padding:10px;margin-bottom:6px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);color:var(--tx);font:inherit;font-size:16px}
+.mnbtn{display:flex;gap:8px}
+.mnbtn button{flex:1}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -1067,6 +1072,15 @@ function balData(){const d=ls.get('bal',{cells:{}});d.months=balMonths_();d.cell
 function balSave(d){ls.set('bal',d)}
 function balTot_(c){return (+c.bank||0)+(+c.cash||0)+(+c.stock||0)}
 function balInc_(ym){const R=money.inc.rows.filter(r=>r.d.slice(0,7)===ym);const o={};BAL_INC.forEach(k=>{o[k]=R.filter(r=>r.c===k).reduce((s,r)=>s+r.a,0)});o.other=R.filter(r=>BAL_INC.indexOf(r.c)<0).reduce((s,r)=>s+r.a,0);o.total=BAL_INC.reduce((s,k)=>s+o[k],0)+o.other;return o}
+/* строчки для записей под таблицами: «＋» добавляет строку, «Сохранить» записывает все строки */
+let mnDraft=null;
+function mnInit_(){if(mnDraft===null)mnDraft=ls.get('mnotes',['']);if(!Array.isArray(mnDraft)||!mnDraft.length)mnDraft=[''];return mnDraft}
+function mnHtml_(){const L=mnInit_();return '<div class="mnb"><div class="mnt">Заметки</div>'+L.map((v,i)=>'<input class="mnin" data-mni="'+i+'" value="'+esc(v)+'" placeholder="Строчка" autocomplete="off">').join('')+'<div class="mnbtn"><button type="button" class="p" data-mn-add="1">＋</button><button type="button" class="p" data-mn-save="1">Сохранить</button></div></div>'}
+document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.classList.contains('mnin')){mnInit_();mnDraft[+e.target.dataset.mni]=e.target.value}});
+document.addEventListener('click',e=>{
+ if(e.target.closest&&e.target.closest('[data-mn-add]')){mnInit_();mnDraft.push('');renderMoneyTables();const x=document.querySelectorAll('#mbal .mnin');if(x.length)x[x.length-1].focus();return}
+ if(e.target.closest&&e.target.closest('[data-mn-save]')){mnInit_();const keep=mnDraft.filter(x=>String(x).trim()!=='');ls.set('mnotes',keep);mnDraft=keep.length?keep:[''];renderMoneyTables();toast('Сохранено');return}
+},true);
 function renderMoneyTables(){
  if(mTab!=='tbl'){$('#mbal').innerHTML='';return}
   const d=balData(),ms=d.months;
@@ -1080,7 +1094,7 @@ function renderMoneyTables(){
  let b='<details class="bt"><summary>Доходы по месяцам</summary><div class="btw"><table class="btt"><tr><th>Месяц</th><th>Всего</th>'+BAL_INC.map(k=>'<th>'+k+'</th>').join('')+'<th>Другое</th></tr>';
  ms.forEach(ym=>{const o=balInc_(ym);b+='<tr><th>'+lab(ym)+'</th><td class="tot">'+fmt(o.total)+'</td>'+BAL_INC.map(k=>'<td>'+(o[k]?fmt(o[k]):'')+'</td>').join('')+'<td>'+(o.other?fmt(o.other):'')+'</td></tr>'});
  b+='</table></div></details>';
- $('#mbal').innerHTML=a+b;
+ $('#mbal').innerHTML=a+b+mnHtml_();
 }
 document.addEventListener('click',e=>{
  const bc=e.target.closest&&e.target.closest('#mbal td[data-bal]');
