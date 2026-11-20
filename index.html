@@ -198,6 +198,14 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .dmp[hidden]{display:none}
 .dmp button{text-align:left;padding:10px 12px;border:0;background:transparent;color:var(--tx);font:inherit;font-size:15px;border-radius:10px;cursor:pointer}
 .dmp button:active{background:var(--ac2)}
+.prm{overflow-x:auto;margin-top:6px;-webkit-overflow-scrolling:touch}
+.prt{border-collapse:separate;border-spacing:3px;font-size:12px}
+.prt th{font-weight:400;color:var(--tx);text-align:center;min-width:64px;max-width:84px;padding:4px 2px;vertical-align:bottom;line-height:1.2}
+.prt tr>th:first-child{position:sticky;left:0;background:var(--sf);min-width:44px;text-align:left;z-index:1}
+.prt td.pc{height:32px;min-width:64px;text-align:center;border-radius:8px;border:0.5px solid var(--bd);background:var(--sf);color:var(--tx);cursor:pointer;user-select:none}
+.prt td.dn{background:#f5a623;color:#fff;border-color:transparent;cursor:default}
+.prt td.sk{background:var(--bd);color:var(--mu)}
+.prt td.fut{border:0;background:transparent;cursor:default}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -741,6 +749,46 @@ function logSet(r,i,t,on){const d=loc(new Date()).slice(0,10),id=r.id+'|'+i+'|'+
 const fmtQ=(u,v)=>u==='s'?(v>=60?Math.floor(v/60)+' мин '+(v%60?v%60+' сек':''):v+' сек'):u==='m'?(v>=60?Math.floor(v/60)+' ч '+(v%60?v%60+' мин':''):v+' мин'):v+' повт.';
 
 const dAgo=n=>loc(new Date(Date.now()-n*864e5)).slice(0,10);
+/* статистика практикума по месяцам: оранжевый — выполнено, белый — не сделано, серый — не делать (нажмите, чтобы переключить) */
+/* статистика практикума: еженедельные — по неделям, ежемесячные — по месяцам, остальные — по месяцам.
+   оранжевый — выполнено, белый — не сделано, серый — не делать (нажмите, чтобы переключить) */
+function prPeriodKey(d,mode){
+ if(mode==='m')return d.slice(0,7);
+ const u=ud(d);return new Date((u-((u+3)%7))*864e5).toISOString().slice(0,10);
+}
+function prRows(mode,firstDay){
+ const today=loc(new Date()).slice(0,10),cur=prPeriodKey(today,mode);
+ let first=cur;plog.forEach(x=>{const k=prPeriodKey(x.d,mode);if(k<first)first=k});
+ if(firstDay&&firstDay<first)first=firstDay;
+ const rows=[];
+ if(mode==='m'){let y=+first.slice(0,4),m=+first.slice(5,7);
+  for(let n=0;n<240;n++){const s=y+'-'+String(m).padStart(2,'0');rows.push(s);if(s===cur)break;m++;if(m>12){m=1;y++}}
+ }else{let s=first;for(let n=0;n<520;n++){rows.push(s);if(s===cur)break;s=new Date((ud(s)+7)*864e5).toISOString().slice(0,10)}}
+ return {rows,cur};
+}
+function prGridHtml(list,mode,title){
+ const cols=[];list.forEach(r=>nlist(r).forEach((tx)=>cols.push({g:r.title,id:r.id,t:tx,k:pkKey(tx)})));
+ if(!cols.length)return '';
+ const skip=ls.get('prskip',{});
+ const firstDay=null;
+ const {rows,cur}=prRows(mode,firstDay);
+ const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+ const label=k=>mode==='m'?MN[+k.slice(5,7)-1]:(k.slice(8,10)+'.'+k.slice(5,7));
+ const groups=[];cols.forEach(c=>{const g=groups[groups.length-1];if(g&&g.id===c.id)g.n++;else groups.push({id:c.id,title:c.g,n:1})});
+ let h='<div class="prm"><div class="mu" style="font-size:13px;margin:14px 0 6px">'+esc(title)+'</div><table class="prt"><tr><th></th>'+groups.map(g=>'<th colspan="'+g.n+'">'+esc(g.title)+'</th>').join('')+'</tr><tr><th></th>'+cols.map(c=>'<th>'+esc(c.t)+'</th>').join('')+'</tr>';
+ rows.forEach(rk=>{h+='<tr><th>'+label(rk)+'</th>'+cols.map(c=>{const key=c.k+'|'+mode+'|'+rk,n=plog.filter(x=>x.k===c.k&&prPeriodKey(x.d,mode)===rk).length;
+  const cls=n>0?'dn':(skip[key]?'sk':'nd');
+  return '<td class="pc '+cls+'" data-pk="'+esc(key)+'">'+(n>0?n:'')+'</td>'}).join('')+'</tr>'});
+ return h+'</table></div>';
+}
+function prMonthHtml(){
+ const pr=items.filter(isPr);
+ const weekly=pr.filter(r=>r.repeat==='w'),monthly=pr.filter(r=>r.repeat==='m'),other=pr.filter(r=>r.repeat!=='w'&&r.repeat!=='m');
+ return prGridHtml(weekly,'w','Еженедельные дела. По неделям (дата — начало недели)')
+  +prGridHtml(monthly,'m','Ежемесячные дела. По месяцам')
+  +prGridHtml(other,'m','Остальные дела. По месяцам');
+}
+document.addEventListener('click',e=>{const td=e.target.closest&&e.target.closest('.prt td[data-pk]');if(!td||td.classList.contains('dn')||td.classList.contains('fut'))return;const sk=ls.get('prskip',{}),k=td.dataset.pk;if(sk[k])delete sk[k];else sk[k]=1;ls.set('prskip',sk);if(pTab==='stats')renderStats()});
 function renderStats(){const t=dAgo(0),from=pPer?dAgo(pPer-1):'',L=plog.filter(x=>x.d>=from),days=new Set(plog.map(x=>x.d));
 let st=0;for(let n=days.has(t)?0:1;days.has(dAgo(n));n++)st++;
 const pcode={};items.filter(isPr).forEach(r=>nlist(r).forEach((tx,i)=>{const k=pkKey(tx);if(!(k in pcode))pcode[k]=(r.nr||[])[i]||'d'}));
@@ -756,7 +804,7 @@ let h=`<div class="mtabs">${PERS.map(p=>`<button type="button" data-pp="${p[0]}"
 <div class="row mu" style="justify-content:space-between;font-size:11px;padding:2px 2px 8px"><span>${shD(cnt[0][0])}</span><span>${shD(cnt[13][0])}</span></div>`;
 h+=ks.length?ks.map(k=>{const A=g[k].slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(a.u<b.u?1:-1)),q={};A.forEach(x=>{if(x.q)q[x.q.u]=(q[x.q.u]||0)+x.q.v});const qs=Object.entries(q).map(([u,v])=>fmtQ(u,v)).join(', '),dd=new Set(A.map(x=>x.d)).size;
 return `<details class="pkd" data-k="${esc(k)}"><summary><span>${esc(k)}</span><b>${A.length}</b></summary><div class="mu" style="font-size:13px;padding:0 0 4px 20px">${RPC[kcOf(k)]}: выполнено ${dd} из ${planOf(k)}${qs?' · объём: '+esc(qs):''} · последний раз: ${shD(A[0].d)}</div>${A.map(x=>`<div class="mer"><span class="mu">${shD(x.d)}</span><span class="mea">${x.q?esc(fmtQ(x.q.u,x.q.v)):'✓'}</span></div>`).join('')}</details>`}).join(''):'<p class="mu">За этот период ничего не отмечено. Нажмите на кружок слева у подзадачи, когда сделаете её.</p>';
-$('#pbody').innerHTML=h;
+h+=prMonthHtml();$('#pbody').innerHTML=h;
 document.querySelectorAll('#pbody [data-pp]').forEach(b=>b.onclick=()=>{pPer=+b.dataset.pp;renderStats()});
 document.querySelectorAll('#pbody .pkd').forEach(d=>{d.open=!!mOpen['pk'+d.dataset.k];d.ontoggle=()=>{mOpen['pk'+d.dataset.k]=d.open}})}
 
