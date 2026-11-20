@@ -855,7 +855,7 @@ function tblAddForm_(kind,items){
  items.forEach(it=>{h+='<div class="tbl-row"><span>'+esc(it.name)+'</span><button type="button" class="tbl-del" data-del="'+kind+'|'+it.id+'">✕</button></div>'});
  h+='<div class="tbl-new"><input id="tn_'+kind+'" placeholder="Новое дело" style="flex:1;min-width:0">';
  if(kind==='w')h+='<select id="te_'+kind+'"><option value="1">каждую неделю</option><option value="2">через неделю (с 28.11)</option></select>';
- if(kind==='y')h+='<select id="te_'+kind+'"><option value="11">ноябрь</option><option value="12">декабрь</option><option value="0">не назначено</option></select>';
+ if(kind==='y')h+='<select id="te_'+kind+'"><option value="11">ноябрь</option><option value="12">декабрь</option><option value="1112">ноябрь и декабрь</option><option value="0">не назначено</option></select>';
  return h+'<button type="button" class="tbl-add" data-add="'+kind+'">Добавить</button></div></div>';
 }
 function tblBlock_(kind,title,cols,lab,items){
@@ -881,7 +881,7 @@ document.addEventListener('click',e=>{
   const d=tblData(),id=kind+Date.now();
   if(kind==='w'){const ev=+document.getElementById('te_w').value;d.w.push({id,name:nm,from:ev===2?'2026-11-28':TBL_W0,every:ev})}
   else if(kind==='m'){d.m.push({id,name:nm})}
-  else{const mo=+document.getElementById('te_y').value;d.y.push({id,name:nm,months:mo?[mo]:[]})}
+  else{const v=document.getElementById('te_y').value;d.y.push({id,name:nm,months:v==='1112'?[11,12]:(v==='0'?[]:[+v])})}
   ls.set('tbl2',d);renderTbl();return}
 },true);
 function renderStats(){const t=dAgo(0),from=pPer?dAgo(pPer-1):'',L=plog.filter(x=>x.d>=from),days=new Set(plog.map(x=>x.d));
@@ -897,7 +897,7 @@ let h=`<div class="mtabs">${PERS.map(p=>`<button type="button" data-pp="${p[0]}"
 `;
 h+=ks.length?ks.map(k=>{const A=g[k].slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(a.u<b.u?1:-1)),q={};A.forEach(x=>{if(x.q)q[x.q.u]=(q[x.q.u]||0)+x.q.v});const qs=Object.entries(q).map(([u,v])=>fmtQ(u,v)).join(', '),dd=new Set(A.map(x=>x.d)).size;
 return `<details class="pkd" data-k="${esc(k)}"><summary><span>${esc(k)}</span><b>${A.length}</b></summary><div class="mu" style="font-size:13px;padding:0 0 4px 20px">${RPC[kcOf(k)]}: выполнено ${dd} из ${planOf(k)}${qs?' · объём: '+esc(qs):''} · последний раз: ${shD(A[0].d)}</div>${A.map(x=>`<div class="mer"><span class="mu">${shD(x.d)}</span><span class="mea">${x.q?esc(fmtQ(x.q.u,x.q.v)):'✓'}</span></div>`).join('')}</details>`}).join(''):'<p class="mu">За этот период ничего не отмечено. Нажмите на кружок слева у подзадачи, когда сделаете её.</p>';
-h+=prMonthHtml();$('#pbody').innerHTML=h;
+$('#pbody').innerHTML=h;
 document.querySelectorAll('#pbody [data-pp]').forEach(b=>b.onclick=()=>{pPer=+b.dataset.pp;renderStats()});
 document.querySelectorAll('#pbody .pkd').forEach(d=>{d.open=!!mOpen['pk'+d.dataset.k];d.ontoggle=()=>{mOpen['pk'+d.dataset.k]=d.open}})}
 
