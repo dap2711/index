@@ -235,6 +235,9 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .tbl-edit{margin:0 10px 10px;border-top:0.5px solid var(--bd)}
 .tbl-edit>summary{list-style:none;padding:10px 4px;cursor:pointer;font-size:13px;color:var(--ac)}
 .tbl-edit>summary::-webkit-details-marker{display:none}
+.tmenu{display:flex;gap:8px;margin:0 14px 8px}
+.tmenu button{flex:1;padding:10px 8px;border-radius:999px;border:2px solid var(--ac);background:transparent;color:var(--ac);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.tmenu button.on{background:var(--ac);color:#fff}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -263,7 +266,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 </div></aside>
 </div>
 <div id="bk"></div>
-<div id="ps"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">🎯 Практикум</b><button class="cl" data-close="p" aria-label="Закрыть">✕</button></div><div class="mtabs" style="margin:0 14px 8px"><button type="button" data-pt="tasks">Задачи</button><button type="button" data-pt="tbl">Таблица</button><button type="button" data-pt="stats">Статистика</button></div><div id="pbody"></div></div>
+<div id="ps"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">📋 Таблица</b><button class="cl" data-close="p" aria-label="Закрыть">✕</button></div><div class="tmenu"><button type="button" data-tm="y">Ежемесячно</button><button type="button" data-tm="w">Еженедельно</button></div><div id="pbody"></div></div>
 <div id="mn"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">🍽 Меню</b><button class="cl" data-close="n" aria-label="Закрыть">✕</button></div><div id="nbody" style="flex:1;min-height:0"></div></div>
 <div id="ms"><div class="row" style="justify-content:space-between"><b style="font-size:18px">💰 Деньги</b><button class="cl" data-close="m" aria-label="Закрыть">✕</button></div>
 <div class="mtabs"><button type="button" data-mt="exp">Расход</button><button type="button" data-mt="inc">Доход</button></div>
@@ -275,7 +278,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 <div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="dal" title="Спросить Алису (Яндекс)" aria-label="Спросить Алису">🟣</button><button type="button" id="dgm" title="Спросить Gemini" aria-label="Спросить Gemini">✨</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
 <div id="cm"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" id="cpv" aria-label="Предыдущий месяц">‹</button><b id="cmt"></b><button type="button" id="cnx" aria-label="Следующий месяц">›</button></div><div class="cg mu" style="margin-bottom:4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cg" id="cgd"></div><div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" id="cnd">Без даты</button><button type="button" id="cx">Закрыть</button></div></div></div>
 <div id="bar"><button type="button" id="cb" title="Категории" aria-label="Категории">🗂 Категории</button><button type="button" class="p" id="nb">＋ Новое</button></div>
-<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">🎯 Практикум</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" style="width:100%;text-align:left">⚙ Настройка</button></div>
+<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" style="width:100%;text-align:left">⚙ Настройка</button></div>
 <script>
 
 const $=s=>document.querySelector(s);
@@ -286,6 +289,7 @@ function setNoIdx(v){ls.set('noIndex',!!v);applyNoIdx()}
 applyNoIdx();
 let items=ls.get('items',[]),cats=ls.get('cats',['Работа','Дом','Здоровье','Учёба','Покупки']),gone=ls.get('gone',{});
 let catGone=ls.get('catgone',{}),catLive=ls.get('catlive',{});
+items.forEach(r=>{if(r.cat&&String(r.cat).indexOf('Практикум')>=0)r.cat='Текучка'});cats=cats.filter(c=>String(c).indexOf('Практикум')<0);if(!cats.includes('Текучка'))cats.push('Текучка');
 const MD={exp:['Еда','Транспорт','Жильё','Здоровье','Развлечения','Прочее'],inc:['Зарплата','Подработка','Прочее']};
 let money=ls.get('money',null)||{};
 let catImg=ls.get('catimg',{});
@@ -535,12 +539,12 @@ sr.onend=()=>{if(srOn){try{sr.start()}catch(x){}}else dictUI()};
 srOn=true;try{sr.start()}catch(x){}dictUI()}
 function dictStop(){srOn=false;if(sr){try{sr.stop()}catch(x){}}sr=null;if(srT)srT.value=srT.value.trim();dictUI()}
 function renderNotes(el,notes,nd,nr){if(!notes.length)notes=[''];nd=nd||[];nr=nr||[];
-el.classList.toggle('nopr',!formIsPr());el.innerHTML=notes.map((t,i)=>`<div class="nrow" data-d="${nd[i]?1:0}"><span class="nn">${i+1}</span><textarea class="nt" placeholder="${i?'Ещё заметка':'Заметка'}">${esc(t)}</textarea><select class="nrp" aria-label="Периодичность" title="Периодичность"><option value="d"${(nr[i]||'d')==='d'?' selected':''}>Каждый день</option><option value="wd"${nr[i]==='wd'?' selected':''}>По будням</option><option value="o2"${nr[i]==='o2'?' selected':''}>Через день</option></select><span class="nmv"><button type="button" class="nup" aria-label="Выше" title="Выше">▲</button><button type="button" class="ndn" aria-label="Ниже" title="Ниже">▼</button></span><button type="button" class="ndict" title="Диктовать" aria-label="Диктовать">🗣</button>${i===notes.length-1?'<button type="button" class="nadd" title="Добавить ещё заметку" aria-label="Добавить ещё заметку">＋</button>':''}</div>`).join('');
-const cur=()=>[...el.querySelectorAll('.nrow')].map(r=>({t:r.querySelector('.nt').value,d:r.dataset.d==='1'?1:0,p:r.querySelector('.nrp').value})),redo=a=>renderNotes(el,a.map(x=>x.t),a.map(x=>x.d),a.map(x=>x.p));
+el.innerHTML=notes.map((t,i)=>`<div class="nrow" data-d="${nd[i]?1:0}"><span class="nn">${i+1}</span><textarea class="nt" placeholder="${i?'Ещё заметка':'Заметка'}">${esc(t)}</textarea><span class="nmv"><button type="button" class="nup" aria-label="Выше" title="Выше">▲</button><button type="button" class="ndn" aria-label="Ниже" title="Ниже">▼</button></span><button type="button" class="ndict" title="Диктовать" aria-label="Диктовать">🗣</button>${i===notes.length-1?'<button type="button" class="nadd" title="Добавить ещё заметку" aria-label="Добавить ещё заметку">＋</button>':''}</div>`).join('');
+const cur=()=>[...el.querySelectorAll('.nrow')].map(r=>({t:r.querySelector('.nt').value,d:r.dataset.d==='1'?1:0,p:(r.querySelector('.nrp')||{value:'d'}).value})),redo=a=>renderNotes(el,a.map(x=>x.t),a.map(x=>x.d),a.map(x=>x.p));
 el.querySelectorAll('.nrow').forEach((r,i)=>{const b=r.querySelector('.ndict'),t=r.querySelector('.nt');b._t=t;if(!SR)b.style.display='none';b.onclick=()=>{if(srOn&&srT===t)dictStop();else dictStart(t)};
 const mv=d=>{dictStop();const a=cur(),j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];redo(a)};r.querySelector('.nup').onclick=()=>mv(-1);r.querySelector('.ndn').onclick=()=>mv(1)});
 const a=el.querySelector('.nadd');if(a)a.onclick=()=>{dictStop();const c=cur();c.push({t:'',d:0,p:'d'});redo(c);const l=el.querySelectorAll('.nt');l[l.length-1].focus()}}
-const getNR=el=>[...el.querySelectorAll('.nrow')].filter(r=>r.querySelector('.nt').value.trim()).map(r=>r.querySelector('.nrp').value);
+const getNR=el=>[...el.querySelectorAll('.nrow')].filter(r=>r.querySelector('.nt').value.trim()).map(r=>{const s=r.querySelector('.nrp');return s?s.value:'d'});
 const getND=el=>[...el.querySelectorAll('.nrow')].filter(r=>r.querySelector('.nt').value.trim()).map(r=>r.dataset.d==='1'?1:0);
 const getNotes=el=>[...el.querySelectorAll('.nt')].map(x=>x.value.trim()).filter(Boolean);
 function closeD(){$('#dm').classList.remove('open');$('#dmb').innerHTML=''}
@@ -642,8 +646,6 @@ $('#cl').querySelectorAll('[data-arc]').forEach(b=>b.onclick=()=>{arcF=true;catF
 $('#cl').querySelectorAll('[data-dc]').forEach(b=>b.onclick=()=>{const n=b.dataset.dc;if(catLabel(n)==='Практикум')return;if(!confirm('Удалить категорию «'+catLabel(n)+'»? Напоминания останутся без категории.'))return;cats=cats.filter(y=>y!==n);catGone[n]=Date.now();items.forEach(r=>{if(r.cat===n){r.cat='';r.u=Date.now()}});if(catF===n)catF='';save();fillCats($('#ct').value);render()})}
 $('#ac').onclick=()=>newCatModal(n=>{fillCats($('#ct').value);render()});
 function render(){
-if(!prCat()&&!((catGone['🎯 Практикум']||0)>(catLive['🎯 Практикум']||0))){cats.push('🎯 Практикум');catLive['🎯 Практикум']=Date.now();save()}
-if(catF&&catLabel(catF)==='Практикум'){catF='';tg('p',true)}
 catUI();
 {const t0=loc(new Date()).slice(0,10);let c='<button type="button" class="dy yr" id="dmt" title="Меню" aria-label="Меню"><b>☰</b></button><span class="sep"></span>';
 for(let i=0;i<7;i++){const k=addD(t0,i),d=new Date(k+'T00:00');c+=`<button type="button" class="dy dd ${mode==='d'+i?'on':''} ${i===0?'td':''}" data-m="d${i}"><b>${WD[d.getDay()]}</b><small>${dmn(k)}</small></button>`}
@@ -745,12 +747,11 @@ setTimeout(()=>{const t=loc(new Date()).slice(0,10);if(items.length&&ls.get('bk_
 function sgWrap(k,n,title,inner){const key=k+'|'+n,closed=ls.get('sgclosed',{});return `<details class="sg" data-sg="${key}"${closed[key]?'':' open'}><summary class="sh">${title}</summary>${inner}</details>`}
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.classList&&d.classList.contains('sg')){const c=ls.get('sgclosed',{});if(d.open)delete c[d.dataset.sg];else c[d.dataset.sg]=1;ls.set('sgclosed',c)}},true);
 /* практикум */
-function formIsPr(){const v=$('#ct')?$('#ct').value:'';return !!v&&catLabel(v)==='Практикум'}
-$('#ct').addEventListener('change',()=>$('#nts').classList.toggle('nopr',!formIsPr()));
-const prCat=()=>cats.find(c=>catLabel(c)==='Практикум'),isPr=r=>!!r.cat&&catLabel(r.cat)==='Практикум';
+function formIsPr(){return false}
+const prCat=()=>undefined,isPr=r=>false;
 let pTab='tasks',pPer=7;
 document.querySelectorAll('#ps [data-pt]').forEach(b=>b.onclick=()=>{pTab=b.dataset.pt;renderPr()});
-function renderPr(){document.querySelectorAll('#ps [data-pt]').forEach(b=>b.classList.toggle('on',b.dataset.pt===pTab));if(pTab==='tbl'){renderTbl();return}if(pTab==='stats'){renderStats();return}const L=items.filter(r=>!r.done&&isPr(r));$('#pbody').innerHTML=L.length?groupHtml(L,ch):'<p class="mu">Пока пусто. Добавьте напоминание в категорию «Практикум».</p>';hooks($('#pbody'))}
+function renderPr(){renderTbl();return;document.querySelectorAll('#ps [data-pt]').forEach(b=>b.classList.toggle('on',b.dataset.pt===pTab));if(pTab==='tbl'){renderTbl();return}if(pTab==='stats'){renderStats();return}const L=items.filter(r=>!r.done&&isPr(r));$('#pbody').innerHTML=L.length?groupHtml(L,ch):'<p class="mu">Пока пусто. Добавьте напоминание в категорию «Практикум».</p>';hooks($('#pbody'))}
 function openPr(){tg('p',true);render()}
 /* подробное описание заметки */
 function vidEmbed(u){u=(u||'').trim();let m;
@@ -864,13 +865,18 @@ function tblBlock_(kind,title,cols,lab,items){
  if(!items.length)h+='<tr><td colspan="'+(cols.length+1)+'" class="mu" style="text-align:left;padding:8px">Пока пусто. Добавьте дело ниже.</td></tr>';
  return h+'</table></div><details class="tbl-edit"><summary>Список дел: изменить или удалить</summary>'+tblAddForm_(kind,items)+'</details></details>';
 }
+let tblMode='w';
 function renderTbl(){
  const d=tblData();
+ document.querySelectorAll('#ps [data-tm]').forEach(b=>b.classList.toggle('on',b.dataset.tm===tblMode));
  const legend='<div class="tbl-leg"><span><i class="dn"></i>Выполнено</span><span><i class="nd"></i>Не сделано</span><span><i class="sk"></i>Не делать</span></div>';
- $('#pbody').innerHTML='<div class="mu" style="font-size:13px;margin:6px 0 4px">Нажмите на ячейку, чтобы отметить выполнение.</div>'
-  +tblBlock_('w','Еженедельные дела',tblWeeks_(),c=>c.slice(8,10)+'.'+c.slice(5,7),d.w)
-  +tblBlock_('y','Ежемесячные дела',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.y)+legend;
+ const block=tblMode==='w'
+  ? tblBlock_('w','Еженедельно',tblWeeks_(),c=>c.slice(8,10)+'.'+c.slice(5,7),d.w)
+  : tblBlock_('y','Ежемесячно',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.y);
+ $('#pbody').innerHTML='<div class="mu" style="font-size:13px;margin:6px 0 4px">Нажмите на ячейку, чтобы отметить выполнение.</div>'+block+legend;
 }
+document.addEventListener('click',e=>{const tm=e.target.closest&&e.target.closest('#ps [data-tm]');if(tm){tblMode=tm.dataset.tm;renderTbl()}},true);
+
 document.addEventListener('click',e=>{
  const td=e.target.closest&&e.target.closest('.tbt td[data-tk]');
  if(td){if(td.classList.contains('sk'))return;const dn=ls.get('tbldone',{}),k=td.dataset.tk;if(dn[k])delete dn[k];else dn[k]=1;ls.set('tbldone',dn);renderTbl();return}
