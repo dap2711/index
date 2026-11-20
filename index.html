@@ -649,7 +649,7 @@ document.documentElement.classList.toggle('touch',TCH);
 if(TCH){
  const SW=96,TH=64;let st=null;
  const snap=(s,v)=>{s.cin.style.transform=v?'translateX('+v+'px)':'';s.cin.dataset.open=v?'1':'0'};
- document.addEventListener('touchstart',e=>{const cin=e.target.closest&&e.target.closest('.cin');if(!cin||e.target.closest('a,input,textarea,select,audio,video,iframe,summary,details,[data-det]'))return;const t=e.touches[0];st={cin,card:cin.parentElement,sx:t.clientX,sy:t.clientY,dx:0,drag:false,open:cin.dataset.open==='1'}},{passive:true});
+ document.addEventListener('touchstart',e=>{const cin=e.target.closest&&e.target.closest('.cin');if(!cin||e.target.closest('a,input,textarea,select,audio,video,iframe'))return;const t=e.touches[0];st={cin,card:cin.parentElement,sx:t.clientX,sy:t.clientY,dx:0,drag:false,open:cin.dataset.open==='1'}},{passive:true});
  document.addEventListener('touchmove',e=>{if(!st)return;const t=e.touches[0],dx=t.clientX-st.sx,dy=t.clientY-st.sy;
   if(!st.drag){if(Math.abs(dy)>8&&Math.abs(dy)>Math.abs(dx)){st=null;return}if(Math.abs(dx)<8)return;st.drag=true;st.cin.classList.add('drag')}
   if(e.cancelable)e.preventDefault();
