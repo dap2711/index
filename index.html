@@ -209,6 +209,29 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .prt th.pw{min-width:46px;max-width:60px;font-size:11px}
 .prt th.ps{min-width:88px;max-width:110px;text-align:left;font-size:12px}
 .prt th.pgt{text-align:left;color:var(--text-secondary);font-size:12px;padding:8px 2px 2px}
+.tbm{border:0.5px solid var(--bd);border-radius:12px;margin:10px 0;overflow:hidden;background:var(--sf)}
+.tbm>summary{list-style:none;display:flex;align-items:center;padding:12px 14px;cursor:pointer;font-size:15px;color:var(--tx)}
+.tbm>summary::-webkit-details-marker{display:none}
+.tbm>summary::after{content:"▸";margin-left:auto;color:var(--mu);font-size:18px}
+.tbm[open]>summary::after{content:"▾"}
+.tbm .cnt{font-size:12px;color:var(--mu);margin-left:8px}
+.tbw{overflow-x:auto;padding:0 10px 8px}
+.tbt{border-collapse:separate;border-spacing:3px;font-size:12px}
+.tbt th{font-weight:400;color:var(--mu);text-align:center;padding:4px 2px;min-width:46px}
+.tbt th.ts{text-align:left;color:var(--tx);position:sticky;left:0;background:var(--sf);min-width:96px;z-index:1}
+.tbt td.tc{height:30px;min-width:46px;border-radius:8px;border:0.5px solid var(--bd);background:var(--sf);cursor:pointer}
+.tbt td.dn{background:#f5a623;border-color:transparent}
+.tbt td.sk{background:var(--bd);cursor:default}
+.tbl-list{padding:0 12px 10px;font-size:13px}
+.tbl-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:0.5px solid var(--bd)}
+.tbl-del{border:0;background:transparent;color:var(--mu);font-size:16px;cursor:pointer;padding:4px 8px}
+.tbl-new{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.tbl-new select,.tbl-new input{padding:8px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);color:var(--tx);font:inherit;font-size:13px}
+.tbl-add{padding:8px 12px;border:0;border-radius:999px;background:var(--ac);color:#fff;font:inherit;font-size:13px;cursor:pointer}
+.tbl-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--mu);padding:8px 2px}
+.tbl-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:middle;border:0.5px solid var(--bd)}
+.tbl-leg i.dn{background:#f5a623;border-color:transparent}
+.tbl-leg i.sk{background:var(--bd)}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -237,7 +260,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 </div></aside>
 </div>
 <div id="bk"></div>
-<div id="ps"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">🎯 Практикум</b><button class="cl" data-close="p" aria-label="Закрыть">✕</button></div><div class="mtabs" style="margin:0 14px 8px"><button type="button" data-pt="tasks">Задачи</button><button type="button" data-pt="stats">Статистика</button></div><div id="pbody"></div></div>
+<div id="ps"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">🎯 Практикум</b><button class="cl" data-close="p" aria-label="Закрыть">✕</button></div><div class="mtabs" style="margin:0 14px 8px"><button type="button" data-pt="tasks">Задачи</button><button type="button" data-pt="tbl">Таблица</button><button type="button" data-pt="stats">Статистика</button></div><div id="pbody"></div></div>
 <div id="mn"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">🍽 Меню</b><button class="cl" data-close="n" aria-label="Закрыть">✕</button></div><div id="nbody" style="flex:1;min-height:0"></div></div>
 <div id="ms"><div class="row" style="justify-content:space-between"><b style="font-size:18px">💰 Деньги</b><button class="cl" data-close="m" aria-label="Закрыть">✕</button></div>
 <div class="mtabs"><button type="button" data-mt="exp">Расход</button><button type="button" data-mt="inc">Доход</button></div>
@@ -724,7 +747,7 @@ $('#ct').addEventListener('change',()=>$('#nts').classList.toggle('nopr',!formIs
 const prCat=()=>cats.find(c=>catLabel(c)==='Практикум'),isPr=r=>!!r.cat&&catLabel(r.cat)==='Практикум';
 let pTab='tasks',pPer=7;
 document.querySelectorAll('#ps [data-pt]').forEach(b=>b.onclick=()=>{pTab=b.dataset.pt;renderPr()});
-function renderPr(){document.querySelectorAll('#ps [data-pt]').forEach(b=>b.classList.toggle('on',b.dataset.pt===pTab));if(pTab==='stats'){renderStats();return}const L=items.filter(r=>!r.done&&isPr(r));$('#pbody').innerHTML=L.length?groupHtml(L,ch):'<p class="mu">Пока пусто. Добавьте напоминание в категорию «Практикум».</p>';hooks($('#pbody'))}
+function renderPr(){document.querySelectorAll('#ps [data-pt]').forEach(b=>b.classList.toggle('on',b.dataset.pt===pTab));if(pTab==='tbl'){renderTbl();return}if(pTab==='stats'){renderStats();return}const L=items.filter(r=>!r.done&&isPr(r));$('#pbody').innerHTML=L.length?groupHtml(L,ch):'<p class="mu">Пока пусто. Добавьте напоминание в категорию «Практикум».</p>';hooks($('#pbody'))}
 function openPr(){tg('p',true);render()}
 /* подробное описание заметки */
 function vidEmbed(u){u=(u||'').trim();let m;
@@ -794,6 +817,71 @@ function prMonthHtml(){
   +prGridHtml(other,'m','Остальные дела. По месяцам');
 }
 document.addEventListener('click',e=>{const td=e.target.closest&&e.target.closest('.prt td[data-pk]');if(!td||td.classList.contains('dn')||td.classList.contains('fut'))return;const sk=ls.get('prskip',{}),k=td.dataset.pk;if(sk[k])delete sk[k];else sk[k]=1;ls.set('prskip',sk);if(pTab==='stats')renderStats()});
+/* раздел «Таблица» в практикуме: еженедельные, ежемесячные и ежегодные дела.
+   Список независим от напоминаний. Оранжевый — выполнено, белый — не сделано, серый — не делать. */
+const TBL_DEF={
+ w:[
+  {id:'pkx',name:'Полотенца на кухню',from:'2026-11-21',every:1},
+  {id:'pva',name:'Полотенца ванна',from:'2026-11-21',every:1},
+  {id:'pbo',name:'Большое полотенце',from:'2026-11-21',every:1},
+  {id:'pyl',name:'Вытереть пыль',from:'2026-11-21',every:1},
+  {id:'vla',name:'Влажная уборка',from:'2026-11-21',every:1},
+  {id:'pso',name:'Почистить пылесос',from:'2026-11-21',every:1},
+  {id:'tpy',name:'Тряпочка от пылесоса',from:'2026-11-21',every:1},
+  {id:'bri',name:'Бритва',from:'2026-11-28',every:2},
+  {id:'pos',name:'Постельное',from:'2026-11-28',every:2},
+  {id:'uni',name:'Унитаз',from:'2026-11-28',every:2},
+  {id:'nog',name:'Ногти',from:'2026-11-28',every:2},
+  {id:'pod',name:'Подмышки',from:'2026-11-28',every:2},
+  {id:'sho',name:'Шорты',from:'2026-11-28',every:2}
+],
+ m:[],
+ y:[{id:'zub',name:'Зубная щётка',months:[]},{id:'okn',name:'Мыть окна',months:[]},{id:'str',name:'Чистка стиралки',months:[]},{id:'tru',name:'Трусы',months:[]},{id:'kuh',name:'Кухня',months:[11]},{id:'van',name:'Ванна',months:[12]}]
+};
+const TBL_W0='2026-11-21',TBL_W_END='2026-12-31',TBL_MONTHS=['2026-11','2026-12'],TBL_MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+function tblData(){return ls.get('tbl2',TBL_DEF)}
+function tblWeeks_(){const out=[];let s=TBL_W0;while(s<=TBL_W_END){out.push(s);s=new Date((ud(s)+7)*864e5).toISOString().slice(0,10)}return out}
+function tblPlanned_(kind,it,per){
+ if(kind==='w'){const W=tblWeeks_(),i=W.indexOf(per);if(i<0)return false;const fi=Math.round((ud(it.from)-ud(TBL_W0))/7);return i>=fi&&((i-fi)%(it.every||1))===0}
+ if(kind==='m')return true;
+ return (it.months||[]).indexOf(+per.slice(5,7))>=0;
+}
+function tblState_(kind,it,per){if(!tblPlanned_(kind,it,per))return 'sk';const dn=ls.get('tbldone',{});return dn[kind+'|'+it.id+'|'+per]?'dn':'nd'}
+function tblAddForm_(kind,items){
+ let h='<div class="tbl-list">';
+ items.forEach(it=>{h+='<div class="tbl-row"><span>'+esc(it.name)+'</span><button type="button" class="tbl-del" data-del="'+kind+'|'+it.id+'">✕</button></div>'});
+ h+='<div class="tbl-new"><input id="tn_'+kind+'" placeholder="Новое дело" style="flex:1;min-width:0">';
+ if(kind==='w')h+='<select id="te_'+kind+'"><option value="1">каждую неделю</option><option value="2">через неделю (с 28.11)</option></select>';
+ if(kind==='y')h+='<select id="te_'+kind+'"><option value="11">ноябрь</option><option value="12">декабрь</option><option value="0">не назначено</option></select>';
+ return h+'<button type="button" class="tbl-add" data-add="'+kind+'">Добавить</button></div></div>';
+}
+function tblBlock_(kind,title,cols,lab,items){
+ let h='<details class="tbm" open><summary>'+title+' <span class="cnt">'+items.length+' дел</span></summary><div class="tbw"><table class="tbt"><tr><th></th>'+cols.map(c=>'<th>'+lab(c)+'</th>').join('')+'</tr>';
+ items.forEach(it=>{h+='<tr><th class="ts">'+esc(it.name)+'</th>'+cols.map(c=>'<td class="tc '+tblState_(kind,it,c)+'" data-tk="'+esc(kind+'|'+it.id+'|'+c)+'"></td>').join('')+'</tr>'});
+ if(!items.length)h+='<tr><td colspan="'+(cols.length+1)+'" class="mu" style="text-align:left;padding:8px">Пока пусто. Добавьте дело ниже.</td></tr>';
+ return h+'</table></div>'+tblAddForm_(kind,items)+'</details>';
+}
+function renderTbl(){
+ const d=tblData();
+ const legend='<div class="tbl-leg"><span><i class="dn"></i>Выполнено</span><span><i class="nd"></i>Не сделано</span><span><i class="sk"></i>Не делать</span></div>';
+ $('#pbody').innerHTML='<div class="mu" style="font-size:13px;margin:6px 0 4px">Нажмите на ячейку, чтобы отметить выполнение.</div>'
+  +tblBlock_('w','Еженедельные дела',tblWeeks_(),c=>c.slice(8,10)+'.'+c.slice(5,7),d.w)
+  +tblBlock_('m','Ежемесячные дела',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.m)
+  +tblBlock_('y','Ежегодные дела',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.y)+legend;
+}
+document.addEventListener('click',e=>{
+ const td=e.target.closest&&e.target.closest('.tbt td[data-tk]');
+ if(td){if(td.classList.contains('sk'))return;const dn=ls.get('tbldone',{}),k=td.dataset.tk;if(dn[k])delete dn[k];else dn[k]=1;ls.set('tbldone',dn);renderTbl();return}
+ const del=e.target.closest&&e.target.closest('[data-del]');
+ if(del){const[kind,id]=del.dataset.del.split('|');const d=tblData();d[kind]=d[kind].filter(x=>x.id!==id);ls.set('tbl2',d);renderTbl();return}
+ const add=e.target.closest&&e.target.closest('[data-add]');
+ if(add){const kind=add.dataset.add,nm=(document.getElementById('tn_'+kind).value||'').trim();if(!nm){toast('Введите название дела');return}
+  const d=tblData(),id=kind+Date.now();
+  if(kind==='w'){const ev=+document.getElementById('te_w').value;d.w.push({id,name:nm,from:ev===2?'2026-11-28':TBL_W0,every:ev})}
+  else if(kind==='m'){d.m.push({id,name:nm})}
+  else{const mo=+document.getElementById('te_y').value;d.y.push({id,name:nm,months:mo?[mo]:[]})}
+  ls.set('tbl2',d);renderTbl();return}
+},true);
 function renderStats(){const t=dAgo(0),from=pPer?dAgo(pPer-1):'',L=plog.filter(x=>x.d>=from),days=new Set(plog.map(x=>x.d));
 let st=0;for(let n=days.has(t)?0:1;days.has(dAgo(n));n++)st++;
 const pcode={};items.filter(isPr).forEach(r=>nlist(r).forEach((tx,i)=>{const k=pkKey(tx);if(!(k in pcode))pcode[k]=(r.nr||[])[i]||'d'}));
@@ -804,9 +892,7 @@ const cnt=[];for(let n=13;n>=0;n--){const d=dAgo(n);cnt.push([d,plog.filter(x=>x
 const PERS=[[1,'Сегодня'],[7,'7 дней'],[30,'30 дней'],[0,'Всё']];
 let h=`<div class="mtabs">${PERS.map(p=>`<button type="button" data-pp="${p[0]}" class="${p[0]===pPer?'on':''}" style="padding:7px 2px;font-weight:600">${p[1]}</button>`).join('')}</div>
 <div class="row" style="gap:8px;flex-wrap:nowrap;margin:8px 0"><div class="box" style="flex:1;text-align:center;padding:8px"><b style="font-size:22px">${L.length}</b><div class="mu" style="font-size:12px">отмечено</div></div><div class="box" style="flex:1;text-align:center;padding:8px"><b style="font-size:22px">${new Set(L.map(x=>x.d)).size}</b><div class="mu" style="font-size:12px">дней с делами</div></div><div class="box" style="flex:1;text-align:center;padding:8px"><b style="font-size:22px">${st}</b><div class="mu" style="font-size:12px">дней подряд</div></div></div>
-<div class="mu" style="font-size:13px;margin:10px 0 4px">Последние 14 дней: сколько подзадач отмечено</div>
-<div style="display:flex;align-items:flex-end;gap:3px;height:70px;padding:0 2px">${cnt.map(c=>`<div title="${shD(c[0])}: ${c[1]}" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%"><span style="font-size:10px" class="mu">${c[1]||''}</span><i style="display:block;width:100%;min-height:2px;height:${Math.round(c[1]/mx*44)+2}px;background:${c[1]?'var(--ac)':'var(--bd)'};border-radius:3px"></i></div>`).join('')}</div>
-<div class="row mu" style="justify-content:space-between;font-size:11px;padding:2px 2px 8px"><span>${shD(cnt[0][0])}</span><span>${shD(cnt[13][0])}</span></div>`;
+`;
 h+=ks.length?ks.map(k=>{const A=g[k].slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:(a.u<b.u?1:-1)),q={};A.forEach(x=>{if(x.q)q[x.q.u]=(q[x.q.u]||0)+x.q.v});const qs=Object.entries(q).map(([u,v])=>fmtQ(u,v)).join(', '),dd=new Set(A.map(x=>x.d)).size;
 return `<details class="pkd" data-k="${esc(k)}"><summary><span>${esc(k)}</span><b>${A.length}</b></summary><div class="mu" style="font-size:13px;padding:0 0 4px 20px">${RPC[kcOf(k)]}: выполнено ${dd} из ${planOf(k)}${qs?' · объём: '+esc(qs):''} · последний раз: ${shD(A[0].d)}</div>${A.map(x=>`<div class="mer"><span class="mu">${shD(x.d)}</span><span class="mea">${x.q?esc(fmtQ(x.q.u,x.q.v)):'✓'}</span></div>`).join('')}</details>`}).join(''):'<p class="mu">За этот период ничего не отмечено. Нажмите на кружок слева у подзадачи, когда сделаете её.</p>';
 h+=prMonthHtml();$('#pbody').innerHTML=h;
