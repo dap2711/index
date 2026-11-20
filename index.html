@@ -96,7 +96,7 @@ body{font-family:Roboto,"Segoe UI",system-ui,sans-serif}
 .cr{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center}
 .tile{width:40px;height:40px;border-radius:11px;background:var(--ac2);display:grid;place-items:center;font-size:20px}
 .ct1{font-weight:700;font-size:16px;line-height:1.25;color:var(--tx);overflow-wrap:anywhere}
-.ct2{font-size:14px;color:var(--mu);margin-top:2px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ct2{font-size:13px;color:var(--mu);margin-top:2px;white-space:pre-wrap;overflow-wrap:anywhere}
 .ca{display:flex;gap:2px}.ca button{border:0;background:none;font-size:17px;padding:5px 7px;border-radius:8px}
 .card.done .ct1{text-decoration:line-through}.card.done{opacity:.6}
 .md{margin-top:8px;font-size:14px}
@@ -164,7 +164,7 @@ details summary{cursor:pointer;font-weight:700;color:var(--ac)}
 .mlink{display:block;width:100%;margin-top:12px;border-style:dashed;color:var(--ac);font-weight:700}
 .ci-img{width:1.2em;height:1.2em;object-fit:contain;vertical-align:-.2em;border-radius:4px}.tile .ci-img{width:26px;height:26px}.nv .ci-img{width:20px;height:20px}
 .cnotes{margin-top:4px}.cnotes:empty{display:none}.cnotes .fn{align-items:center;gap:8px;padding:0;border:0;margin:0;line-height:1.3}.cnotes .fn+.fn{margin-top:2px}
-.cnotes .fnt{font-size:18px;line-height:1.3;color:var(--tx)}.cnotes .fnn{min-width:24px;height:24px;font-size:13px}.cnotes .fn+.fn{margin-top:5px}.dnote{font-size:18px}.cnotes .nb{width:36px;height:36px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);font-size:17px;color:var(--tx)}
+.cnotes .fnt{font-size:15px;line-height:1.3;color:var(--tx)}.cnotes .fnn{min-width:24px;height:24px;font-size:13px}.cnotes .fn+.fn{margin-top:5px}.dnote{font-size:18px}.cnotes .nb{width:36px;height:36px;border:1px solid var(--bd);border-radius:10px;background:var(--sf);font-size:17px;color:var(--tx)}
 .cnotes .nb[data-na=done]{color:var(--ac);font-weight:700;border-color:var(--ac)}
 @media (prefers-reduced-motion:reduce){#ms{transition:none}}
 #ps,#mn{position:fixed;top:0;left:0;bottom:0;width:min(460px,100%);background:var(--sf);border-right:1px solid var(--bd);box-shadow:8px 0 30px rgba(0,0,0,.3);z-index:10;transform:translateX(-100%);visibility:hidden;transition:transform .25s,visibility .25s;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
@@ -190,8 +190,16 @@ details summary{cursor:pointer;font-weight:700;color:var(--ac)}
 .nopr .nrp{display:none !important}
 .nrp{flex:1 1 calc(100% - 26px) !important;width:auto !important;margin-left:26px}
 #nts{min-width:0}
+details.sg>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+details.sg>summary::-webkit-details-marker{display:none}
+details.sg>summary::after{content:'▾';font-size:28px;line-height:1;color:var(--ac);margin-left:8px;padding:0 4px}
+details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1;color:var(--ac);margin-left:8px;padding:0 4px}
+.dmp{position:fixed;z-index:60;background:var(--sf);border:1px solid var(--bd);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);padding:6px;min-width:220px;display:flex;flex-direction:column}
+.dmp[hidden]{display:none}
+.dmp button{text-align:left;padding:10px 12px;border:0;background:transparent;color:var(--tx);font:inherit;font-size:15px;border-radius:10px;cursor:pointer}
+.dmp button:active{background:var(--ac2)}
 </style>
-<link rel="manifest" href="manifest.json"><link rel="icon" href="icons/icon-main-192.png"><link rel="apple-touch-icon" href="icons/icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
 <div class="app">
 <main>
@@ -223,13 +231,14 @@ details summary{cursor:pointer;font-weight:700;color:var(--ac)}
 <div id="ms"><div class="row" style="justify-content:space-between"><b style="font-size:18px">💰 Деньги</b><button class="cl" data-close="m" aria-label="Закрыть">✕</button></div>
 <div class="mtabs"><button type="button" data-mt="exp">Расход</button><button type="button" data-mt="inc">Доход</button></div>
 <div id="mfm" class="g"></div><div class="cl-sep" style="margin:14px 0 6px"></div><div id="mls"></div></div>
-<div id="cs"><div class="row" style="justify-content:space-between;padding:6px 10px 8px"><b>Категории</b><button class="cl" data-close="c" aria-label="Закрыть">✕</button></div><div style="padding:4px 10px 8px"><button type="button" class="p" id="ac" style="width:100%">＋ Новая категория</button></div><div id="cl"></div><div style="padding:12px 10px 16px;border-top:1px solid var(--bd);margin-top:10px"><button type="button" id="bset" style="width:100%;text-align:left">⚙ Настройка</button><input type="file" id="bfi" style="display:none"><input type="file" id="csf" style="display:none"></div></div>
+<div id="cs"><div class="row" style="justify-content:space-between;padding:6px 10px 8px"><b>Категории</b><button class="cl" data-close="c" aria-label="Закрыть">✕</button></div><div style="padding:4px 10px 8px"><button type="button" class="p" id="ac" style="width:100%">＋ Новая категория</button></div><div id="cl"></div><div style="padding:12px 10px 16px;border-top:1px solid var(--bd);margin-top:10px"><input type="file" id="bfi" style="display:none"><input type="file" id="csf" style="display:none"></div></div>
 <div id="om"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b id="omt"></b><button type="button" class="cl" id="omx" aria-label="Закрыть">✕</button></div><div id="omb"></div></div></div>
 <div id="am"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Запись аудио</b><button type="button" class="cl" id="amx" aria-label="Закрыть">✕</button></div><div class="mu">Нажмите кнопку, чтобы начать запись, и ещё раз, чтобы остановить. Запись добавится к напоминанию.</div><div class="row" style="margin-top:12px"><button type="button" id="rb">🎙 Записать аудио</button><span id="rt" class="rec"></span></div>
 <label class="row" style="margin-top:12px;gap:8px;flex-wrap:nowrap"><input type="checkbox" id="dsw" checked style="width:auto"><span>Записывать текст речи в заметку</span></label><div id="dst" class="mu" style="margin-top:6px"></div></div></div>
 <div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="dal" title="Спросить Алису (Яндекс)" aria-label="Спросить Алису">🟣</button><button type="button" id="dgm" title="Спросить Gemini" aria-label="Спросить Gemini">✨</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
 <div id="cm"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" id="cpv" aria-label="Предыдущий месяц">‹</button><b id="cmt"></b><button type="button" id="cnx" aria-label="Следующий месяц">›</button></div><div class="cg mu" style="margin-bottom:4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cg" id="cgd"></div><div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" id="cnd">Без даты</button><button type="button" id="cx">Закрыть</button></div></div></div>
 <div id="bar"><button type="button" id="cb" title="Категории" aria-label="Категории">🗂 Категории</button><button type="button" class="p" id="nb">＋ Новое</button></div>
+<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">🎯 Практикум</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" style="width:100%;text-align:left">⚙ Настройка</button></div>
 <script>
 
 const $=s=>document.querySelector(s);
@@ -431,10 +440,11 @@ dictStop();if(rec)await new Promise(r=>stopRec(r));const title=$('#ti').value.tr
 for(const p of pend){if(p.blob)await put(p.id,p.blob)}
 for(const f of drop)await del(f.id);
 const r=items.find(x=>x.id===editId)||{id:'r'+Date.now(),done:false};
-const when=$('#wh').value,changed=r.when!==when,nd=!when,cs=$('#ct').value==='__new'?'':$('#ct').value,cat1=nd?(cs||'Входящие'):(cal.imp?'':(cs||(cal.n?'':'Входящие')));
+const when=$('#wh').value,changed=r.when!==when,nd=!when,cs=$('#ct').value==='__new'?'':$('#ct').value,cat1=nd?(cs||'Текучка'):(cal.imp?'':(cs||(cal.n?'':'Текучка')));
 Object.assign(r,{title,num:(cal.imp||nd)?0:cal.n,imp:nd?0:cal.imp,mt:nd?'':cal.mt,me:(!nd&&cal.mt)?cal.me:'',notes:getNotes($('#nts')),nd:getND($('#nts')),nr:getNR($('#nts')),det:(r.det&&r.det.length===getNotes($('#nts')).length)?r.det:[],text:getNotes($('#nts'))[0]||'',when,cat:cat1,repeat:nd?'':$('#rp').value,rn:+$('#rn').value||1,ru:$('#ru').value,lead:0,
 tags:r.tags||[],links:pend.filter(p=>p.lk).map(p=>p.lk),
 files:pend.filter(p=>!p.lk).map(p=>({id:p.id,name:p.name,type:p.type})),att:pend.map(p=>p.lk?{t:'l',u:p.lk}:{t:'f',id:p.id}),u:Date.now()});
+if(cat1==='Текучка'&&!cats.includes('Текучка')){cats.push('Текучка');catLive['Текучка']=Date.now()}
 if(changed||!editId){r.fired=false;r.snooze=''}
 if(!editId)items.unshift(r);
 if(when){selD=when.slice(0,10);mode=modeFor(selD);toast('Сохранено')}else toast('Сохранено без даты в категории «'+cat1+'». Найти его можно через значок 🗂.');
@@ -598,11 +608,11 @@ function render(){
 if(!prCat()&&!((catGone['🎯 Практикум']||0)>(catLive['🎯 Практикум']||0))){cats.push('🎯 Практикум');catLive['🎯 Практикум']=Date.now();save()}
 if(catF&&catLabel(catF)==='Практикум'){catF='';tg('p',true)}
 catUI();
-{const t0=loc(new Date()).slice(0,10);let c='<button type="button" class="dy yr" id="mny" title="Деньги" aria-label="Деньги"><b>💰</b></button><span class="sep"></span>';
+{const t0=loc(new Date()).slice(0,10);let c='<button type="button" class="dy yr" id="dmt" title="Меню" aria-label="Меню"><b>☰</b></button><span class="sep"></span>';
 for(let i=0;i<7;i++){const k=addD(t0,i),d=new Date(k+'T00:00');c+=`<button type="button" class="dy dd ${mode==='d'+i?'on':''} ${i===0?'td':''}" data-m="d${i}"><b>${WD[d.getDay()]}</b><small>${dmn(k)}</small></button>`}
-c+=`<span class="sep"></span><button type="button" class="dy yr ${mode==='all'?'on':''}" data-m="all" title="Все дела (год)" aria-label="Все дела (год)"><b>🗓</b></button><span class="sep"></span><button type="button" class="dy yr" id="prb" title="Практикум" aria-label="Практикум"><b>🎯</b></button><button type="button" class="dy yr" id="mnb" title="Меню" aria-label="Меню"><b>🍽</b></button>`;
+c+=``;
 $('#mp').innerHTML=`<div class="strip ds">${c}</div>`}
-$('#mny').onclick=openMoney;$('#prb').onclick=openPr;$('#mnb').onclick=openMen;
+$('#dmt').onclick=()=>toggleDmp();
 $('#mp').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
 $('#sdet').style.display=(mode==='all'||arcF)?'':'none';if(arcF)$('#sdet').open=true;
 $('#chip').innerHTML=arcF?`<button type="button" class="tag" id="cch">✅ Выполненные ✕</button>`:secF?`<button type="button" class="tag" id="cch">Раздел: ${SL[secF]} ✕</button>`:impF?`<button type="button" class="tag" id="cch">⭐ Важные дела ✕</button>`:catF?`<button type="button" class="tag" id="cch">Категория: ${esc(catLabel(catF))} ✕</button>`:'';
@@ -617,8 +627,8 @@ h+=`<div class="dcap">${multi?(mode==='month'?'Дела на месяц':'Все
 [...new Set(base.map(r=>r.when?r.when.slice(0,10):'~'))].sort().forEach(k=>{
 const L=base.filter(r=>(r.when?r.when.slice(0,10):'~')===k),LI=L.filter(r=>r.imp).sort(srt),LN=L.filter(r=>!r.imp),order=k!=='~'&&isWE(k)?[1,3,5]:[1,2,3,4,5];let g='';
 if(LI.length)g+=`<div class="impbox"><div class="t">⭐ Важное</div>${LI.map(ch).join('')}</div>`;
-order.forEach(n=>{const M=LN.filter(r=>r.num===n).sort(srt);if(M.length)g+=`<h3 class="sh">${SL[n]}</h3>`+M.map(ch).join('')});
-const oth=LN.filter(r=>!order.includes(r.num)).sort(srt);if(oth.length)g+=`<h3 class="sh">Входящие</h3>`+oth.map(ch).join('');
+order.forEach(n=>{const M=LN.filter(r=>r.num===n).sort(srt);if(M.length)g+=sgWrap(k,n,SL[n],M.map(ch).join(''))});
+const oth=LN.filter(r=>!order.includes(r.num)).sort(srt);if(oth.length)g+=sgWrap(k,'in','Входящие',oth.map(ch).join(''));
 const nm=k==='~'?'Без даты':dlbl(k);
 if(mode==='month'||mode==='all')h+=`<details class="dg" data-k="${k}" ${openD.has(mode+k)?'open':''}><summary><span>${nm}</span><span class="mu">${L.length}</span></summary>${g}</details>`;
 else h+=(multi?`<h3 class="dh">${nm}</h3>`:'')+g});
@@ -694,6 +704,9 @@ if(!o||o.app!=='napominalka'||!Array.isArray(o.items)){toast('Это не фай
 if(!confirm('Объединить копию ('+o.items.length+' дел) с текущими данными? Более новые версии дел сохранятся.'))return;
 merge(o);save();render();if($('#ms').classList.contains('open'))mList();toast('Копия загружена')};fr.readAsText(fl)};
 setTimeout(()=>{const t=loc(new Date()).slice(0,10);if(items.length&&ls.get('bk_last','')!==t&&ls.get('bk_ask','')!==t){ls.set('bk_ask',t);toastA('Копия на сегодня не сделана.','Сохранить',bkSave,12000)}},2500);
+/* разделы дня в ленте: сворачиваются, состояние запоминается */
+function sgWrap(k,n,title,inner){const key=k+'|'+n,closed=ls.get('sgclosed',{});return `<details class="sg" data-sg="${key}"${closed[key]?'':' open'}><summary class="sh">${title}</summary>${inner}</details>`}
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.classList&&d.classList.contains('sg')){const c=ls.get('sgclosed',{});if(d.open)delete c[d.dataset.sg];else c[d.dataset.sg]=1;ls.set('sgclosed',c)}},true);
 /* практикум */
 function formIsPr(){const v=$('#ct')?$('#ct').value:'';return !!v&&catLabel(v)==='Практикум'}
 $('#ct').addEventListener('change',()=>$('#nts').classList.toggle('nopr',!formIsPr()));
@@ -810,7 +823,7 @@ async function wsFiles() {
     try { const res = await wsCall({ act: 'get', id: id }); await put(id, b64ToBlob(res.b64, f.type || res.type)); dn++; } catch (e) { bad++; last = e.message; }
   }
   const now = Date.now() / 1000;
-  for (const id in srv) { if (!refs.has(id) && now - srv[id].t > 86400) { try { await wsCall({ act: 'del', id: id }); } catch (e) {} } }
+  for (const id in srv) { if (!refs.has(id) && /^f\d{13}/.test(id) && now - srv[id].t > 86400) { try { await wsCall({ act: 'del', id: id }); } catch (e) {} } }
   if (dn) render(); if (more) setTimeout(() => wsSync(), 1500);
   const mb = n => Math.round(n / 1048576) + ' МБ', p = [];
   if (up) p.push('↑' + up); if (dn) p.push('↓' + dn); if (bad) p.push('ошибок ' + bad + (last ? ' (' + last + ')' : ''));
@@ -915,5 +928,11 @@ urls.forEach(u=>pend.push({lk:u}));showPend();icons();tg('r',true);history.repla
 <script>
 /* офлайн: когда появился интернет — отправить накопленные изменения */
 window.addEventListener('online',()=>{if(typeof wsSync==='function')wsSync()});
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script></body>
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});</script><script>
+function toggleDmp(){const p=$('#dmp'),b=$('#dmt'),r=b.getBoundingClientRect();p.style.left=Math.max(8,r.left)+'px';p.style.top=(r.bottom+6)+'px';p.hidden=!p.hidden}
+document.addEventListener('click',e=>{const p=$('#dmp');if(!p||p.hidden)return;const inP=e.target.closest&&e.target.closest('#dmp'),it=inP&&e.target.closest('[data-dm]');
+ if(inP||!e.target.closest('#dmt'))p.hidden=true;
+ if(it){({all:()=>setMode('all'),mny:openMoney,prb:openPr,mnb:openMen})[it.dataset.dm]()}},true);
+</script>
+</body>
 </html>
