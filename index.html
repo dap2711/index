@@ -206,6 +206,9 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .prt td.dn{background:#f5a623;color:#fff;border-color:transparent;cursor:default}
 .prt td.sk{background:var(--bd);color:var(--mu)}
 .prt td.fut{border:0;background:transparent;cursor:default}
+.prt th.pw{min-width:46px;max-width:60px;font-size:11px}
+.prt th.ps{min-width:88px;max-width:110px;text-align:left;font-size:12px}
+.prt th.pgt{text-align:left;color:var(--text-secondary);font-size:12px;padding:8px 2px 2px}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -767,18 +770,20 @@ function prRows(mode,firstDay){
  return {rows,cur};
 }
 function prGridHtml(list,mode,title){
- const cols=[];list.forEach(r=>nlist(r).forEach((tx)=>cols.push({g:r.title,id:r.id,t:tx,k:pkKey(tx)})));
- if(!cols.length)return '';
+ const groups=[];list.forEach(r=>{const subs=nlist(r).map(tx=>({t:tx,k:pkKey(tx)}));if(subs.length)groups.push({id:r.id,title:r.title,subs})});
+ if(!groups.length)return '';
  const skip=ls.get('prskip',{});
- const firstDay=null;
- const {rows,cur}=prRows(mode,firstDay);
+ const {rows}=prRows(mode,null);
  const MN=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
  const label=k=>mode==='m'?MN[+k.slice(5,7)-1]:(k.slice(8,10)+'.'+k.slice(5,7));
- const groups=[];cols.forEach(c=>{const g=groups[groups.length-1];if(g&&g.id===c.id)g.n++;else groups.push({id:c.id,title:c.g,n:1})});
- let h='<div class="prm"><div class="mu" style="font-size:13px;margin:14px 0 6px">'+esc(title)+'</div><table class="prt"><tr><th></th>'+groups.map(g=>'<th colspan="'+g.n+'">'+esc(g.title)+'</th>').join('')+'</tr><tr><th></th>'+cols.map(c=>'<th>'+esc(c.t)+'</th>').join('')+'</tr>';
- rows.forEach(rk=>{h+='<tr><th>'+label(rk)+'</th>'+cols.map(c=>{const key=c.k+'|'+mode+'|'+rk,n=plog.filter(x=>x.k===c.k&&prPeriodKey(x.d,mode)===rk).length;
-  const cls=n>0?'dn':(skip[key]?'sk':'nd');
-  return '<td class="pc '+cls+'" data-pk="'+esc(key)+'">'+(n>0?n:'')+'</td>'}).join('')+'</tr>'});
+ const n=rows.length+1;
+ let h='<div class="prm"><div class="mu" style="font-size:13px;margin:14px 0 6px">'+esc(title)+'</div><table class="prt"><tr><th></th>'+rows.map(rk=>'<th class="pw">'+label(rk)+'</th>').join('')+'</tr>';
+ groups.forEach(g=>{
+  h+='<tr><th colspan="'+n+'" class="pgt">'+esc(g.title)+'</th></tr>';
+  g.subs.forEach(s=>{h+='<tr><th class="ps">'+esc(s.t)+'</th>'+rows.map(rk=>{const key=s.k+'|'+mode+'|'+rk,c=plog.filter(x=>x.k===s.k&&prPeriodKey(x.d,mode)===rk).length;
+   const cls=c>0?'dn':(skip[key]?'sk':'nd');
+   return '<td class="pc '+cls+'" data-pk="'+esc(key)+'">'+(c>0?c:'')+'</td>'}).join('')+'</tr>'});
+ });
  return h+'</table></div>';
 }
 function prMonthHtml(){
