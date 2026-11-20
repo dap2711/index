@@ -232,6 +232,9 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .tbl-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:middle;border:0.5px solid var(--bd)}
 .tbl-leg i.dn{background:#f5a623;border-color:transparent}
 .tbl-leg i.sk{background:var(--bd)}
+.tbl-edit{margin:0 10px 10px;border-top:0.5px solid var(--bd)}
+.tbl-edit>summary{list-style:none;padding:10px 4px;cursor:pointer;font-size:13px;color:var(--ac)}
+.tbl-edit>summary::-webkit-details-marker{display:none}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -859,15 +862,14 @@ function tblBlock_(kind,title,cols,lab,items){
  let h='<details class="tbm" open><summary>'+title+' <span class="cnt">'+items.length+' дел</span></summary><div class="tbw"><table class="tbt"><tr><th></th>'+cols.map(c=>'<th>'+lab(c)+'</th>').join('')+'</tr>';
  items.forEach(it=>{h+='<tr><th class="ts">'+esc(it.name)+'</th>'+cols.map(c=>'<td class="tc '+tblState_(kind,it,c)+'" data-tk="'+esc(kind+'|'+it.id+'|'+c)+'"></td>').join('')+'</tr>'});
  if(!items.length)h+='<tr><td colspan="'+(cols.length+1)+'" class="mu" style="text-align:left;padding:8px">Пока пусто. Добавьте дело ниже.</td></tr>';
- return h+'</table></div>'+tblAddForm_(kind,items)+'</details>';
+ return h+'</table></div><details class="tbl-edit"><summary>Список дел: изменить или удалить</summary>'+tblAddForm_(kind,items)+'</details></details>';
 }
 function renderTbl(){
  const d=tblData();
  const legend='<div class="tbl-leg"><span><i class="dn"></i>Выполнено</span><span><i class="nd"></i>Не сделано</span><span><i class="sk"></i>Не делать</span></div>';
  $('#pbody').innerHTML='<div class="mu" style="font-size:13px;margin:6px 0 4px">Нажмите на ячейку, чтобы отметить выполнение.</div>'
   +tblBlock_('w','Еженедельные дела',tblWeeks_(),c=>c.slice(8,10)+'.'+c.slice(5,7),d.w)
-  +tblBlock_('m','Ежемесячные дела',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.m)
-  +tblBlock_('y','Ежегодные дела',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.y)+legend;
+  +tblBlock_('y','Ежемесячные дела',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.y)+legend;
 }
 document.addEventListener('click',e=>{
  const td=e.target.closest&&e.target.closest('.tbt td[data-tk]');
