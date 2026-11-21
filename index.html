@@ -285,6 +285,8 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .sgc>summary::after{content:"▸";float:right;color:var(--mu)}
 .sgc[open]>summary::after{content:"▾"}
 .sgc>*:not(summary){margin-bottom:8px}
+.tbt th.ts{min-width:84px}
+.tbt tr.wk>*{border-top:2px solid var(--mu)}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -950,24 +952,27 @@ const TBL_DAY=[
  {id:'rash',name:'расходы',start:'2026-11-21',rule:'daily'},
  {id:'obu',name:'обувь в порядок',start:'2026-11-21',rule:'daily'},
  {id:'sha',name:'10.000 шагов',start:'2026-11-21',rule:'daily'},
- {id:'ai',name:'AI generator',start:'2026-11-21',rule:'alt'},
- {id:'tur',name:'турник',start:'2026-11-21',rule:'alt'},
- {id:'umn',name:'умные мысли',start:'2026-11-21',rule:'alt'},
- {id:'pla',name:'Планка',start:'2026-11-22',rule:'alt'},
- {id:'esp',name:'эспандер',start:'2026-11-22',rule:'alt'},
- {id:'ang',name:'английский',start:'2026-11-22',rule:'alt'}
+ {id:'ai',name:'AI generator',start:'2026-11-21',rule:'mwf'},
+ {id:'tur',name:'турник',start:'2026-11-21',rule:'mwf'},
+ {id:'umn',name:'умные мысли',start:'2026-11-21',rule:'mwf'},
+ {id:'pla',name:'Планка',start:'2026-11-21',rule:'tts'},
+ {id:'esp',name:'эспандер',start:'2026-11-21',rule:'tts'},
+ {id:'ang',name:'английский',start:'2026-11-21',rule:'tts'}
 ];
 function tblDays_(){const o=[];let s='2026-11-21';while(s<='2026-12-31'){o.push(s);s=new Date((ud(s)+1)*864e5).toISOString().slice(0,10)}return o}
 function dayPlanned_(it,day){
  if(day<it.start)return false;
  if(it.rule==='daily')return true;
- if(new Date(ud(day)*864e5).getUTCDay()===0)return false;
- return ((ud(day)-ud(it.start))%2)===0;
+ const wd=new Date(ud(day)*864e5).getUTCDay();
+ if(it.rule==='mwf')return [1,3,5].indexOf(wd)>=0;
+ if(it.rule==='tts')return [2,4,6].indexOf(wd)>=0;
+ return false;
 }
 function tblDayBlock_(){
  const days=tblDays_();
  let h='<details class="tbm" open><summary>Дела на день <span class="cnt">'+TBL_DAY.length+' дел</span></summary><div class="tbw"><table class="tbt"><tr><th>Дата</th>'+TBL_DAY.map(it=>'<th>'+esc(it.name)+'</th>').join('')+'</tr>';
- days.forEach(dy=>{h+='<tr><th class="ts">'+dy.slice(8,10)+'.'+dy.slice(5,7)+'</th>'+TBL_DAY.map(it=>{const k='d|'+it.id+'|'+dy;return '<td class="tc '+tblState_('d',it,dy)+'" data-tk="'+esc(k)+'">'+tcVal_(k)+'</td>'}).join('')+'</tr>'});
+ const WDS=['вс','пн','вт','ср','чт','пт','сб'];
+ days.forEach(dy=>{const wd=new Date(ud(dy)*864e5).getUTCDay();h+='<tr'+(wd===1?' class="wk"':'')+'><th class="ts">'+dy.slice(8,10)+'.'+dy.slice(5,7)+' '+WDS[wd]+'</th>'+TBL_DAY.map(it=>{const k='d|'+it.id+'|'+dy;return '<td class="tc '+tblState_('d',it,dy)+'" data-tk="'+esc(k)+'">'+tcVal_(k)+'</td>'}).join('')+'</tr>'});
  return h+'</table></div></details>';
 }
 function tblAddForm_(kind,items){
