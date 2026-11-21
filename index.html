@@ -303,7 +303,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .btt td.bc{cursor:pointer;color:var(--ac)}
 .btt td.up{color:#1f8a4c}
 .btt td.dn{color:#d93025}
-@media (min-width:700px){#ms{max-width:none!important;width:min(980px,94vw)!important}}
+@media (min-width:700px){#ms.wide{max-width:none!important;width:min(980px,94vw)!important}}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -344,7 +344,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 <div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="dal" title="Спросить Алису (Яндекс)" aria-label="Спросить Алису">🟣</button><button type="button" id="dgm" title="Спросить Gemini" aria-label="Спросить Gemini">✨</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
 <div id="cm"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" id="cpv" aria-label="Предыдущий месяц">‹</button><b id="cmt"></b><button type="button" id="cnx" aria-label="Следующий месяц">›</button></div><div class="cg mu" style="margin-bottom:4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cg" id="cgd"></div><div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" id="cnd">Без даты</button><button type="button" id="cx">Закрыть</button></div></div></div>
 <div id="bar"><button type="button" class="p" id="nb">＋ Новое</button></div>
-<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" style="width:100%;text-align:left">⚙ Настройка</button></div>
+<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><button type="button" data-dm="aig">🤖 AI generator</button><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" style="width:100%;text-align:left">⚙ Настройка</button></div>
 <script>
 
 const $=s=>document.querySelector(s);
@@ -1187,6 +1187,7 @@ document.addEventListener('click',e=>{
  if(e.target.closest&&e.target.closest('[data-mn-save]')){mnInit_();const keep=mnDraft.filter(x=>String(x).trim()!=='');ls.set('mnotes',keep);tblTouch_();mnDraft=keep.length?keep:[''];renderMoneyTables();toast('Сохранено');return}
 },true);
 function renderMoneyTables(){
+ $('#ms').classList.toggle('wide',mTab==='tbl');
  if(mTab!=='tbl'){$('#mbal').innerHTML='';return}
   const d=balData(),ms=d.months;
  const lab=ym=>MN2[+ym.slice(5,7)-1]+' '+ym.slice(0,4);
@@ -1263,7 +1264,18 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(
 function toggleDmp(){const p=$('#dmp'),b=$('#dmt'),r=b.getBoundingClientRect();p.style.left=Math.max(8,r.left)+'px';p.style.top=(r.bottom+6)+'px';p.hidden=!p.hidden}
 document.addEventListener('click',e=>{const p=$('#dmp');if(!p||p.hidden)return;const inP=e.target.closest&&e.target.closest('#dmp'),it=inP&&e.target.closest('[data-dm]');
  if(inP||!e.target.closest('#dmt'))p.hidden=true;
- if(it){({all:()=>setMode('all'),cat:()=>{catUI();tg('c',true)},mny:openMoney,prb:openPr,mnb:openMen})[it.dataset.dm]()}},true);
+ if(it){({all:()=>setMode('all'),aig:()=>{if(!cats.includes('AI generator')){cats.push('AI generator');catLive['AI generator']=Date.now();save()}impF=false;secF=0;arcF=false;catF='AI generator';render()},cat:()=>{catUI();tg('c',true)},mny:openMoney,prb:openPr,mnb:openMen})[it.dataset.dm]()}},true);
+</script>
+<script>
+/* правая кнопка мыши: то же меню, что и ☰ (дела на год, категории, деньги, таблица, меню, настройка) */
+document.addEventListener('contextmenu',e=>{
+ if(e.target.closest&&e.target.closest('input,textarea,select,[contenteditable]'))return;
+ const p=document.getElementById('dmp');if(!p)return;
+ e.preventDefault();
+ p.style.left=Math.max(8,Math.min(e.clientX,innerWidth-250))+'px';
+ p.style.top=Math.max(8,Math.min(e.clientY,innerHeight-320))+'px';
+ p.hidden=false;
+});
 </script>
 </body>
 </html>
