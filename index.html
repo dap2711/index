@@ -943,9 +943,10 @@ function tcVal_(k){const c=cellAll_()[k];return (c&&c.v!=null)?c.v:''}
 function tblTouch_(){ls.set('tblts',Date.now());wsDirty=true;if(wsc){clearTimeout(wst);wst=setTimeout(wsSync,1500)}}
 function mergeCells_(rc){if(!rc)return;const all=cellAll_();Object.keys(rc).forEach(k=>{if(!all[k]||(rc[k].t||0)>(all[k].t||0))all[k]=rc[k]});ls.set('tblcell',all)}
 function mergeTables_(rm){
- const lt=+ls.get('tblts',0)||0,rt=+rm.tblts||0;
+ const lt=+ls.get('tblts',0)||0,rt=+rm.tblts||0;const ct=Math.max(0,...Object.values(rm.tblcell||{}).map(c=>+c.t||0));
  if(rt>lt){if(rm.tbl2)ls.set('tbl2',rm.tbl2);if(rm.bal)ls.set('bal',rm.bal);if(Array.isArray(rm.mnotes))ls.set('mnotes',rm.mnotes);ls.set('tblts',rt)}
  mergeCells_(rm.tblcell);
+ const nt=Math.max(lt,rt,ct);if(nt>lt)ls.set('tblts',nt);
 }
 /* «Дела на день»: строки — дни, столбцы — дела. Алгоритм: «через день» (кроме воскресенья) или ежедневно */
 const TBL_DAY=[
@@ -1039,7 +1040,7 @@ document.querySelectorAll('#pbody .pkd').forEach(d=>{d.open=!!mOpen['pk'+d.datas
 const toB64 = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result.split(',')[1]); f.readAsDataURL(b); });
 const b64ToBlob = (b64, t) => { const s = atob(b64), a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return new Blob([a], { type: t }); };
 
-const wsSig = () => JSON.stringify([items.map(r => r.id + ':' + (r.u || 0)).sort(), Object.keys(gone).sort(), plog.map(x => x.id).sort(), money, catImg, pvid, cats, localStorage.getItem('menu30')]);
+const wsSig = () => JSON.stringify([items.map(r => r.id + ':' + (r.u || 0)).sort(), Object.keys(gone).sort(), plog.map(x => x.id).sort(), money, catImg, pvid, cats, localStorage.getItem('menu30'), +ls.get('tblts',0)||0]);
 const wsMsg = t => { const e = $('#wsm'); if (e) e.textContent = t };
 
 async function wsCall(body) {
@@ -1065,7 +1066,7 @@ async function wsSync(manual) {
     if (ch) {
       ls.set('items', items); ls.set('cats', cats); ls.set('gone', gone); ls.set('money', money);
       ls.set('catimg', catImg); ls.set('plog', plog); ls.set('pvid', pvid);
-      render(); if ($('#ms').classList.contains('open')) mList();
+      render(); if ($('#ms').classList.contains('open')) mList(); if ($('#ps').classList.contains('open')) renderTbl();
     }
     if (ch || dirty || !a.data || manual) {
       const fullPayload = JSON.parse(payload());
