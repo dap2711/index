@@ -947,15 +947,15 @@ function mergeTables_(rm){
 }
 /* «Дела на день»: строки — дни, столбцы — дела. Алгоритм: «через день» (кроме воскресенья) или ежедневно */
 const TBL_DAY=[
+ {id:'rash',name:'расходы',start:'2026-11-21',rule:'daily'},
+ {id:'obu',name:'обувь в порядок',start:'2026-11-21',rule:'daily'},
+ {id:'sha',name:'10.000 шагов',start:'2026-11-21',rule:'daily'},
  {id:'ai',name:'AI generator',start:'2026-11-21',rule:'alt'},
  {id:'tur',name:'турник',start:'2026-11-21',rule:'alt'},
  {id:'umn',name:'умные мысли',start:'2026-11-21',rule:'alt'},
  {id:'pla',name:'Планка',start:'2026-11-22',rule:'alt'},
  {id:'esp',name:'эспандер',start:'2026-11-22',rule:'alt'},
- {id:'ang',name:'английский',start:'2026-11-22',rule:'alt'},
- {id:'rash',name:'расходы',start:'2026-11-21',rule:'daily'},
- {id:'obu',name:'обувь в порядок',start:'2026-11-21',rule:'daily'},
- {id:'sha',name:'10.000 шагов',start:'2026-11-21',rule:'daily'}
+ {id:'ang',name:'английский',start:'2026-11-22',rule:'alt'}
 ];
 function tblDays_(){const o=[];let s='2026-11-21';while(s<='2026-12-31'){o.push(s);s=new Date((ud(s)+1)*864e5).toISOString().slice(0,10)}return o}
 function dayPlanned_(it,day){
@@ -998,7 +998,7 @@ document.addEventListener('click',e=>{const tm=e.target.closest&&e.target.closes
 
 document.addEventListener('click',e=>{
  const td=e.target.closest&&e.target.closest('.tbt td[data-tk]');
- if(td){if(td.classList.contains('sk'))return;const k=td.dataset.tk;const cur=tcVal_(k);const v=prompt('Число (пусто — отметить выполнение или снять отметку):',cur===''?'':String(cur));if(v===null)return;const s=v.trim();
+ if(td){if(td.classList.contains('sk'))return;const k=td.dataset.tk;const numOk=!k.startsWith('d|')||['tur','pla','esp'].indexOf(k.split('|')[1])>=0;if(!numOk){cellSet_(k,{d:cellDone_(k)?0:1,v:null});renderTbl();return}const cur=tcVal_(k);const v=prompt('Число (пусто — отметить выполнение или снять отметку):',cur===''?'':String(cur));if(v===null)return;const s=v.trim();
  if(s===''){cellSet_(k,{d:cellDone_(k)?0:1,v:null})}
  else{const n=parseFloat(s.replace(',','.'));if(isNaN(n)){toast('Введите число');return}cellSet_(k,{d:1,v:n})}
  renderTbl();return}
