@@ -288,6 +288,22 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .tbt th.ts{min-width:84px}
 .tbt tr.wk>*{border-top:2px solid var(--mu)}
 @media (min-width:700px){#ps{max-width:none!important;width:min(980px,94vw)!important}}
+/* таблицы денег — того же размера, что и в разделе «Таблица», раскрыты */
+.bt{border:0.5px solid var(--bd);border-radius:12px;margin:0 0 10px;overflow:hidden;background:var(--sf)}
+.bt>summary{list-style:none;display:flex;align-items:center;padding:12px 14px;cursor:pointer;font-size:15px;color:var(--tx)}
+.bt>summary::-webkit-details-marker{display:none}
+.bt>summary::after{content:"▸";margin-left:auto;color:var(--mu);font-size:18px}
+.bt[open]>summary::after{content:"▾"}
+.btw{overflow-x:auto;max-height:none;padding:0 10px 8px}
+.btt{border-collapse:separate;border-spacing:3px;font-size:12px}
+.btt th{font-weight:400;color:var(--mu);text-align:center;padding:4px 2px;min-width:46px;position:static;background:none}
+.btt th:first-child{text-align:left;color:var(--tx);position:sticky;left:0;background:var(--sf);min-width:96px;z-index:1}
+.btt td{height:30px;min-width:46px;padding:0 4px;text-align:center;border:0.5px solid var(--bd);border-radius:8px;background:var(--sf);white-space:nowrap}
+.btt td.tot{font-weight:600;background:var(--sf)}
+.btt td.bc{cursor:pointer;color:var(--ac)}
+.btt td.up{color:#1f8a4c}
+.btt td.dn{color:#d93025}
+@media (min-width:700px){#ms{max-width:none!important;width:min(980px,94vw)!important}}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -391,7 +407,9 @@ pend.push({id:'f'+Date.now(),name:'Запись '+new Date().toLocaleString('ru-
 rec.start();$('#rb').textContent='⏹ Остановить';if($('#dsw')&&$('#dsw').checked)dictStart();
 tick=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);$('#rt').textContent='● '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500)
 }catch(e){alert('Нет доступа к микрофону. Разрешите его в настройках браузера.')}};
-$('#fl').onchange=e=>{[...e.target.files].forEach((f,i)=>pend.push({id:'f'+Date.now()+i,name:f.name,type:f.type,blob:f}));e.target.value='';showPend()};
+async function shrinkImg_(f){try{const bmp=await createImageBitmap(f,{imageOrientation:'from-image'});const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(bmp.width*k));c.height=Math.max(1,Math.round(bmp.height*k));c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(b=>r(b||f),'image/jpeg',.85))}catch(e){return f}}
+/* фото: картинки сжимаются, файлы больше 8 МБ не добавляются (иначе они не уходят на Диск) */
+$('#fl').onchange=async e=>{const L=[...e.target.files];for(let i=0;i<L.length;i++){const f=L[i];let b=f;if(f.type.startsWith('image/')&&f.type!=='image/gif')b=await shrinkImg_(f);if(b.size>8*1048576){toast('«'+f.name+'» больше 8 МБ — не добавлен');continue}pend.push({id:'f'+Date.now()+i,name:f.name,type:b.type||f.type,blob:b})}e.target.value='';showPend()};
 function showPend(){$('#pend').innerHTML=pend.map((p,i)=>`<span class="fi"><span class="fit">${p.lk?(isMap(p.lk)?'📍 ':'🔗 '):(p.type||'').startsWith('audio')?'🎙 ':'📎 '}${esc(p.lk?p.lk.replace(/^https?:\/\//,''):p.name)}</span><button data-i="${i}" aria-label="Убрать">✕</button></span>`).join('');
 $('#pend').querySelectorAll('button').forEach(b=>b.onclick=()=>{const p=pend.splice(+b.dataset.i,1)[0];if(p&&p.old)drop.push(p);showPend();icons()})}
 /* форма */
@@ -1173,12 +1191,12 @@ function renderMoneyTables(){
   const d=balData(),ms=d.months;
  const lab=ym=>MN2[+ym.slice(5,7)-1]+' '+ym.slice(0,4);
  const tot=ym=>balTot_(d.cells[ym]||{});
- let a='<details class="bt"><summary>Остатки по месяцам</summary><div class="btw"><table class="btt"><tr><th>Месяц</th><th>Всего</th><th>В банках</th><th>Наличка</th><th>Биржа</th><th>Долги</th><th>Динамика</th></tr>';
+ let a='<details class="bt" open><summary>Остатки по месяцам</summary><div class="btw"><table class="btt"><tr><th>Месяц</th><th>Всего</th><th>В банках</th><th>Наличка</th><th>Биржа</th><th>Долги</th><th>Динамика</th></tr>';
  ms.forEach((ym,i)=>{const c=d.cells[ym]||{};const dyn=i>0?tot(ym)-tot(ms[i-1]):null;
   const dc=dyn===null?'':(dyn>=0?'up':'dn');
   a+='<tr><th>'+lab(ym)+'</th><td class="tot">'+fmt(tot(ym))+'</td>'+['bank','cash','stock','debt'].map(f=>'<td class="bc" data-bal="'+ym+'|'+f+'">'+(c[f]?fmt(c[f]):'')+'</td>').join('')+'<td class="'+dc+'">'+(dyn===null?'—':(dyn>0?'+':'')+fmt(dyn))+'</td></tr>'});
  a+='</table></div></details>';
- let b='<details class="bt"><summary>Доходы по месяцам</summary><div class="btw"><table class="btt"><tr><th>Месяц</th><th>Всего</th>'+BAL_INC.map(k=>'<th>'+k+'</th>').join('')+'<th>Другое</th></tr>';
+ let b='<details class="bt" open><summary>Доходы по месяцам</summary><div class="btw"><table class="btt"><tr><th>Месяц</th><th>Всего</th>'+BAL_INC.map(k=>'<th>'+k+'</th>').join('')+'<th>Другое</th></tr>';
  ms.forEach(ym=>{const o=balInc_(ym);b+='<tr><th>'+lab(ym)+'</th><td class="tot">'+fmt(o.total)+'</td>'+BAL_INC.map(k=>'<td>'+(o[k]?fmt(o[k]):'')+'</td>').join('')+'<td>'+(o.other?fmt(o.other):'')+'</td></tr>'});
  b+='</table></div></details>';
  $('#mbal').innerHTML=a+b+mnHtml_();
