@@ -313,7 +313,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 </div></aside>
 </div>
 <div id="bk"></div>
-<div id="ps"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">📋 Таблица</b><button class="cl" data-close="p" aria-label="Закрыть">✕</button></div><div class="tmenu"><button type="button" data-tm="y">Ежемесячно</button><button type="button" data-tm="w">Еженедельно</button></div><div id="pbody"></div></div>
+<div id="ps"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">📋 Таблица</b><button class="cl" data-close="p" aria-label="Закрыть">✕</button></div><div class="tmenu"><button type="button" data-tm="y">Ежемесячно</button><button type="button" data-tm="w">Еженедельно</button><button type="button" data-tm="d">Дела на день</button></div><div id="pbody"></div></div>
 <div id="mn"><div class="row" style="justify-content:space-between;padding:10px 14px"><b style="font-size:18px">🍽 Меню</b><button class="cl" data-close="n" aria-label="Закрыть">✕</button></div><div id="nbody" style="flex:1;min-height:0"></div></div>
 <div id="ms"><div class="row" style="justify-content:space-between"><b style="font-size:18px">💰 Деньги</b><button class="cl" data-close="m" aria-label="Закрыть">✕</button></div>
 <div class="mtabs"><button type="button" data-mt="exp">Расход</button><button type="button" data-mt="inc">Доход</button><button type="button" data-mt="tbl">Таблицы</button></div>
@@ -358,7 +358,7 @@ async function get(id){if(mem[id])return mem[id];const d=await db();if(!d)return
 async function del(id){delete mem[id];const d=await db();if(d)try{d.transaction('b','readwrite').objectStore('b').delete(id)}catch(e){}}
 /* синхронизация */
 let pt=null;
-const payload=()=>JSON.stringify({items,gone,cats,catGone,catLive,money,catImg,plog,pvid});
+const payload=()=>JSON.stringify({items,gone,cats,catGone,catLive,money,catImg,plog,pvid,tbl2:ls.get('tbl2',null),bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tblcell:cellAll_(),tblts:+ls.get('tblts',0)||0,menu30:localStorage.getItem('menu30')||''});
 function save(){ls.set('items',items);ls.set('cats',cats);ls.set('catgone',catGone);ls.set('catlive',catLive);ls.set('gone',gone);ls.set('money',money);ls.set('catimg',catImg);ls.set('plog',plog);ls.set('pvid',pvid);clearTimeout(pt);pt=setTimeout(push,700);wsDirty=true;if(wsc){clearTimeout(wst);wst=setTimeout(wsSync,1500)}}
 async function push(){if(!sdoc)return;try{await sdoc.set({p:payload()});sy(1)}catch(e){sy(0)}}
 function sy(ok){$('#sy').textContent=ok?'☁ Синхронизировано':'Только на этом устройстве'}
@@ -368,7 +368,7 @@ const map={};items.forEach(r=>map[r.id]=r);
 (rm.items||[]).forEach(r=>{if(!map[r.id]||(r.u||0)>(map[r.id].u||0))map[r.id]=r});
 items=Object.values(map).filter(r=>!(gone[r.id]&&gone[r.id]>=(r.u||0))).sort((a,b)=>b.id.localeCompare(a.id));
 Object.entries(rm.catGone||{}).forEach(([k,v])=>{catGone[k]=Math.max(catGone[k]||0,v)});Object.entries(rm.catLive||{}).forEach(([k,v])=>{catLive[k]=Math.max(catLive[k]||0,v)});
-cats=[...new Set([...cats,...(rm.cats||[])])].filter(c=>(catGone[c]||0)<=(catLive[c]||0));mMerge(rm.money);catImg={...(rm.catImg||{}),...catImg};{const pm={};plog.forEach(x=>pm[x.id]=x);(rm.plog||[]).forEach(x=>{if(!pm[x.id])pm[x.id]=x});plog=Object.values(pm)}pvid={...(rm.pvid||{}),...pvid}}
+cats=[...new Set([...cats,...(rm.cats||[])])].filter(c=>(catGone[c]||0)<=(catLive[c]||0));mMerge(rm.money);catImg={...(rm.catImg||{}),...catImg};{const pm={};plog.forEach(x=>pm[x.id]=x);(rm.plog||[]).forEach(x=>{if(!pm[x.id])pm[x.id]=x});plog=Object.values(pm)}pvid={...(rm.pvid||{}),...pvid};mergeTables_(rm)}
 async function initSync(){
 try{if(!window.claude||!claude.use)return;
 const c=await claude.use('db'),u=await claude.use('user');if(!c||!u)return;
@@ -803,7 +803,7 @@ let q=c.nextElementSibling;while(q&&q.dataset.id&&q.classList.contains('card')){
 const ids=run.map(x=>x.dataset.id),i=ids.indexOf(c.dataset.id),j=i+dir;if(j<0||j>=ids.length){toast('Дальше двигать некуда');return}
 [ids[i],ids[j]]=[ids[j],ids[i]];ids.forEach((x,n)=>{const r=items.find(y=>y.id===x);if(r){r.o=n;r.u=Date.now()}});save();render()}
 /* резервная копия */
-const bkData=()=>JSON.stringify({app:'napominalka',v:1,at:new Date().toISOString(),items,gone,cats,catGone,catLive,money,catImg,plog,pvid,menu30:localStorage.getItem('menu30')||'',bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tbl2:ls.get('tbl2',null),tbldone:ls.get('tbldone',{}),nap_sync:ls.get('nap_sync',null),nap_mailcfg:ls.get('nap_mailcfg',null),nap_bkcfg:ls.get('nap_bkcfg',null)});
+const bkData=()=>JSON.stringify({app:'napominalka',v:1,at:new Date().toISOString(),items,gone,cats,catGone,catLive,money,catImg,plog,pvid,menu30:localStorage.getItem('menu30')||'',bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tbl2:ls.get('tbl2',null),tbldone:ls.get('tbldone',{}),tblcell:cellAll_(),tblts:+ls.get('tblts',0)||0,nap_sync:ls.get('nap_sync',null),nap_mailcfg:ls.get('nap_mailcfg',null),nap_bkcfg:ls.get('nap_bkcfg',null)});
 const bkName=()=>'Напоминалка-'+loc(new Date()).slice(0,10)+'.json',bkMark=()=>ls.set('bk_last',loc(new Date()).slice(0,10));
 /* автокопия: раз в сутки при открытии приложения, если подключён адрес скрипта */
 setTimeout(()=>{const t=loc(new Date()).slice(0,10);if(items.length&&ls.get('nap_bkcfg',null)&&ls.get('bk_auto','')!==t){ls.set('bk_auto',t);bkDrive()}},5000);
@@ -816,7 +816,7 @@ $('#bset').onclick=()=>{winModal('Настройка','<b>Резервная к�
 $('#bfi').onchange=e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;const fr=new FileReader();fr.onload=()=>{let o;try{o=JSON.parse(fr.result)}catch(x){}
 if(!o||o.app!=='napominalka'||!Array.isArray(o.items)){toast('Это не файл копии Напоминалки');return}
 if(!confirm('Объединить копию ('+o.items.length+' дел) с текущими данными? Более новые версии дел сохранятся.'))return;
-merge(o);if(o.menu30&&!localStorage.getItem('menu30'))localStorage.setItem('menu30',o.menu30);if(o.bal)ls.set('bal',o.bal);if(Array.isArray(o.mnotes)){ls.set('mnotes',o.mnotes);mnDraft=null}if(o.tbl2)ls.set('tbl2',o.tbl2);if(o.nap_sync){ls.set('nap_sync',o.nap_sync);wsc=o.nap_sync}if(o.nap_mailcfg)ls.set('nap_mailcfg',o.nap_mailcfg);if(o.nap_bkcfg)ls.set('nap_bkcfg',o.nap_bkcfg);if(o.tbldone)ls.set('tbldone',Object.assign({},ls.get('tbldone',{}),o.tbldone));save();render();if($('#ms').classList.contains('open'))mList();toast('Копия загружена')};fr.readAsText(fl)};
+merge(o);if(o.menu30&&!localStorage.getItem('menu30'))localStorage.setItem('menu30',o.menu30);if(o.bal)ls.set('bal',o.bal);if(Array.isArray(o.mnotes)){ls.set('mnotes',o.mnotes);mnDraft=null}if(o.tbl2)ls.set('tbl2',o.tbl2);if(o.nap_sync){ls.set('nap_sync',o.nap_sync);wsc=o.nap_sync}if(o.nap_mailcfg)ls.set('nap_mailcfg',o.nap_mailcfg);if(o.nap_bkcfg)ls.set('nap_bkcfg',o.nap_bkcfg);if(o.tbldone)ls.set('tbldone',Object.assign({},ls.get('tbldone',{}),o.tbldone));if(o.tblcell)mergeCells_(o.tblcell);save();render();if($('#ms').classList.contains('open'))mList();toast('Копия загружена')};fr.readAsText(fl)};
 setTimeout(()=>{const t=loc(new Date()).slice(0,10);if(items.length&&ls.get('bk_last','')!==t&&ls.get('bk_ask','')!==t){ls.set('bk_ask',t);toastA('Копия на сегодня не сделана.','Сохранить',bkSave,12000)}},2500);
 /* разделы дня в ленте: сворачиваются, состояние запоминается */
 function sgWrap(k,n,title,inner){const key=k+'|'+n,closed=ls.get('sgclosed',{});return `<details class="sg" data-sg="${key}"${closed[key]?'':' open'}><summary class="sh">${title}</summary>${inner}</details>`}
@@ -921,11 +921,55 @@ const TBL_W0='2026-11-21',TBL_W_END='2026-12-31',TBL_MONTHS=['2026-11','2026-12'
 function tblData(){return ls.get('tbl2',TBL_DEF)}
 function tblWeeks_(){const out=[];let s=TBL_W0;while(s<=TBL_W_END){out.push(s);s=new Date((ud(s)+7)*864e5).toISOString().slice(0,10)}return out}
 function tblPlanned_(kind,it,per){
+ if(kind==='d')return dayPlanned_(it,per);
  if(kind==='w'){const W=tblWeeks_(),i=W.indexOf(per);if(i<0)return false;const fi=Math.round((ud(it.from)-ud(TBL_W0))/7);return i>=fi&&((i-fi)%(it.every||1))===0}
  if(kind==='m')return true;
  return (it.months||[]).indexOf(+per.slice(5,7))>=0;
 }
-function tblState_(kind,it,per){if(!tblPlanned_(kind,it,per))return 'sk';const dn=ls.get('tbldone',{});return dn[kind+'|'+it.id+'|'+per]?'dn':'nd'}
+function tblState_(kind,it,per){if(!tblPlanned_(kind,it,per))return 'sk';return cellDone_(kind+'|'+it.id+'|'+per)?'dn':'nd'}
+/* ячейки таблиц: { d: 1 — выполнено, v: число или null, t: время изменения } */
+function cellAll_(){
+ const c=ls.get('tblcell',null);if(c)return c;
+ const o={},dn=ls.get('tbldone',{}),vl=ls.get('tblval',{});
+ Object.keys(dn).forEach(k=>{if(dn[k])o[k]={d:1,v:null,t:1}});
+ Object.keys(vl).forEach(k=>{o[k]=Object.assign({d:1,v:null,t:1},o[k],{v:vl[k]})});
+ return o;
+}
+function cellSet_(k,patch){const all=cellAll_();all[k]=Object.assign({d:0,v:null},all[k]||{},patch,{t:Date.now()});ls.set('tblcell',all);tblTouch_()}
+function cellDone_(k){const c=cellAll_()[k];return !!(c&&c.d===1)}
+function tcVal_(k){const c=cellAll_()[k];return (c&&c.v!=null)?c.v:''}
+function tblTouch_(){ls.set('tblts',Date.now());wsDirty=true;if(wsc){clearTimeout(wst);wst=setTimeout(wsSync,1500)}}
+function mergeCells_(rc){if(!rc)return;const all=cellAll_();Object.keys(rc).forEach(k=>{if(!all[k]||(rc[k].t||0)>(all[k].t||0))all[k]=rc[k]});ls.set('tblcell',all)}
+function mergeTables_(rm){
+ const lt=+ls.get('tblts',0)||0,rt=+rm.tblts||0;
+ if(rt>lt){if(rm.tbl2)ls.set('tbl2',rm.tbl2);if(rm.bal)ls.set('bal',rm.bal);if(Array.isArray(rm.mnotes))ls.set('mnotes',rm.mnotes);ls.set('tblts',rt)}
+ mergeCells_(rm.tblcell);
+}
+/* «Дела на день»: строки — дни, столбцы — дела. Алгоритм: «через день» (кроме воскресенья) или ежедневно */
+const TBL_DAY=[
+ {id:'ai',name:'AI generator',start:'2026-11-21',rule:'alt'},
+ {id:'tur',name:'турник',start:'2026-11-21',rule:'alt'},
+ {id:'umn',name:'умные мысли',start:'2026-11-21',rule:'alt'},
+ {id:'pla',name:'Планка',start:'2026-11-22',rule:'alt'},
+ {id:'esp',name:'эспандер',start:'2026-11-22',rule:'alt'},
+ {id:'ang',name:'английский',start:'2026-11-22',rule:'alt'},
+ {id:'rash',name:'расходы',start:'2026-11-21',rule:'daily'},
+ {id:'obu',name:'обувь в порядок',start:'2026-11-21',rule:'daily'},
+ {id:'sha',name:'10.000 шагов',start:'2026-11-21',rule:'daily'}
+];
+function tblDays_(){const o=[];let s='2026-11-21';while(s<='2026-12-31'){o.push(s);s=new Date((ud(s)+1)*864e5).toISOString().slice(0,10)}return o}
+function dayPlanned_(it,day){
+ if(day<it.start)return false;
+ if(it.rule==='daily')return true;
+ if(new Date(ud(day)*864e5).getUTCDay()===0)return false;
+ return ((ud(day)-ud(it.start))%2)===0;
+}
+function tblDayBlock_(){
+ const days=tblDays_();
+ let h='<details class="tbm" open><summary>Дела на день <span class="cnt">'+TBL_DAY.length+' дел</span></summary><div class="tbw"><table class="tbt"><tr><th>Дата</th>'+TBL_DAY.map(it=>'<th>'+esc(it.name)+'</th>').join('')+'</tr>';
+ days.forEach(dy=>{h+='<tr><th class="ts">'+dy.slice(8,10)+'.'+dy.slice(5,7)+'</th>'+TBL_DAY.map(it=>{const k='d|'+it.id+'|'+dy;return '<td class="tc '+tblState_('d',it,dy)+'" data-tk="'+esc(k)+'">'+tcVal_(k)+'</td>'}).join('')+'</tr>'});
+ return h+'</table></div></details>';
+}
 function tblAddForm_(kind,items){
  let h='<div class="tbl-list">';
  items.forEach(it=>{h+='<div class="tbl-row"><span>'+esc(it.name)+'</span><button type="button" class="tbl-del" data-del="'+kind+'|'+it.id+'">✕</button></div>'});
@@ -936,7 +980,7 @@ function tblAddForm_(kind,items){
 }
 function tblBlock_(kind,title,cols,lab,items){
  let h='<details class="tbm" open><summary>'+title+' <span class="cnt">'+items.length+' дел</span></summary><div class="tbw"><table class="tbt"><tr><th></th>'+cols.map(c=>'<th>'+lab(c)+'</th>').join('')+'</tr>';
- items.forEach(it=>{h+='<tr><th class="ts">'+esc(it.name)+'</th>'+cols.map(c=>'<td class="tc '+tblState_(kind,it,c)+'" data-tk="'+esc(kind+'|'+it.id+'|'+c)+'"></td>').join('')+'</tr>'});
+ items.forEach(it=>{h+='<tr><th class="ts">'+esc(it.name)+'</th>'+cols.map(c=>'<td class="tc '+tblState_(kind,it,c)+'" data-tk="'+esc(kind+'|'+it.id+'|'+c)+'">'+tcVal_(kind+'|'+it.id+'|'+c)+'</td>').join('')+'</tr>'});
  if(!items.length)h+='<tr><td colspan="'+(cols.length+1)+'" class="mu" style="text-align:left;padding:8px">Пока пусто. Добавьте дело ниже.</td></tr>';
  return h+'</table></div><details class="tbl-edit"><summary>Список дел: изменить или удалить</summary>'+tblAddForm_(kind,items)+'</details></details>';
 }
@@ -947,23 +991,26 @@ function renderTbl(){
  const legend='<div class="tbl-leg"><span><i class="dn"></i>Выполнено</span><span><i class="nd"></i>Не сделано</span><span><i class="sk"></i>Не делать</span></div>';
  const block=tblMode==='w'
   ? tblBlock_('w','Еженедельно',tblWeeks_(),c=>c.slice(8,10)+'.'+c.slice(5,7),d.w)
-  : tblBlock_('y','Ежемесячно',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.y);
+  : (tblMode==='y' ? tblBlock_('y','Ежемесячно',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.y) : tblDayBlock_());
  $('#pbody').innerHTML='<div class="mu" style="font-size:13px;margin:6px 0 4px">Нажмите на ячейку, чтобы отметить выполнение.</div>'+block+legend;
 }
 document.addEventListener('click',e=>{const tm=e.target.closest&&e.target.closest('#ps [data-tm]');if(tm){tblMode=tm.dataset.tm;renderTbl()}},true);
 
 document.addEventListener('click',e=>{
  const td=e.target.closest&&e.target.closest('.tbt td[data-tk]');
- if(td){if(td.classList.contains('sk'))return;const dn=ls.get('tbldone',{}),k=td.dataset.tk;if(dn[k])delete dn[k];else dn[k]=1;ls.set('tbldone',dn);renderTbl();return}
+ if(td){if(td.classList.contains('sk'))return;const k=td.dataset.tk;const cur=tcVal_(k);const v=prompt('Число (пусто — отметить выполнение или снять отметку):',cur===''?'':String(cur));if(v===null)return;const s=v.trim();
+ if(s===''){cellSet_(k,{d:cellDone_(k)?0:1,v:null})}
+ else{const n=parseFloat(s.replace(',','.'));if(isNaN(n)){toast('Введите число');return}cellSet_(k,{d:1,v:n})}
+ renderTbl();return}
  const del=e.target.closest&&e.target.closest('[data-del]');
- if(del){const[kind,id]=del.dataset.del.split('|');const d=tblData();d[kind]=d[kind].filter(x=>x.id!==id);ls.set('tbl2',d);renderTbl();return}
+ if(del){const[kind,id]=del.dataset.del.split('|');const d=tblData();d[kind]=d[kind].filter(x=>x.id!==id);ls.set('tbl2',d);tblTouch_();renderTbl();return}
  const add=e.target.closest&&e.target.closest('[data-add]');
  if(add){const kind=add.dataset.add,nm=(document.getElementById('tn_'+kind).value||'').trim();if(!nm){toast('Введите название дела');return}
   const d=tblData(),id=kind+Date.now();
   if(kind==='w'){const ev=+document.getElementById('te_w').value;d.w.push({id,name:nm,from:ev===2?'2026-11-28':TBL_W0,every:ev})}
   else if(kind==='m'){d.m.push({id,name:nm})}
   else{const v=document.getElementById('te_y').value;d.y.push({id,name:nm,months:v==='1112'?[11,12]:(v==='0'?[]:[+v])})}
-  ls.set('tbl2',d);renderTbl();return}
+  ls.set('tbl2',d);tblTouch_();renderTbl();return}
 },true);
 function renderStats(){const t=dAgo(0),from=pPer?dAgo(pPer-1):'',L=plog.filter(x=>x.d>=from),days=new Set(plog.map(x=>x.d));
 let st=0;for(let n=days.has(t)?0:1;days.has(dAgo(n));n++)st++;
@@ -1102,7 +1149,7 @@ toastA('Запись удалена','Отменить',()=>{m.rows.push(r);dele
 const BAL_INC=['Дивиденты','ХЭК','Садик','Марпи'];
 function balMonths_(){const o=[];let y=2026,m=11;for(let n=0;n<14;n++){o.push(y+'-'+String(m).padStart(2,'0'));m++;if(m>12){m=1;y++}}return o}
 function balData(){const d=ls.get('bal',{cells:{}});d.months=balMonths_();d.cells=d.cells||{};return d}
-function balSave(d){ls.set('bal',d)}
+function balSave(d){ls.set('bal',d);tblTouch_()}
 function balTot_(c){return (+c.bank||0)+(+c.cash||0)+(+c.stock||0)}
 function balInc_(ym){const R=money.inc.rows.filter(r=>r.d.slice(0,7)===ym);const o={};BAL_INC.forEach(k=>{o[k]=R.filter(r=>r.c===k).reduce((s,r)=>s+r.a,0)});o.other=R.filter(r=>BAL_INC.indexOf(r.c)<0).reduce((s,r)=>s+r.a,0);o.total=BAL_INC.reduce((s,k)=>s+o[k],0)+o.other;return o}
 /* строчки для записей под таблицами: «＋» добавляет строку, «Сохранить» записывает все строки */
@@ -1112,7 +1159,7 @@ function mnHtml_(){const L=mnInit_();return '<div class="mnb"><div class="mnt">�
 document.addEventListener('input',e=>{if(e.target&&e.target.classList&&e.target.classList.contains('mnin')){mnInit_();mnDraft[+e.target.dataset.mni]=e.target.value}});
 document.addEventListener('click',e=>{
  if(e.target.closest&&e.target.closest('[data-mn-add]')){mnInit_();mnDraft.push('');renderMoneyTables();const x=document.querySelectorAll('#mbal .mnin');if(x.length)x[x.length-1].focus();return}
- if(e.target.closest&&e.target.closest('[data-mn-save]')){mnInit_();const keep=mnDraft.filter(x=>String(x).trim()!=='');ls.set('mnotes',keep);mnDraft=keep.length?keep:[''];renderMoneyTables();toast('Сохранено');return}
+ if(e.target.closest&&e.target.closest('[data-mn-save]')){mnInit_();const keep=mnDraft.filter(x=>String(x).trim()!=='');ls.set('mnotes',keep);tblTouch_();mnDraft=keep.length?keep:[''];renderMoneyTables();toast('Сохранено');return}
 },true);
 function renderMoneyTables(){
  if(mTab!=='tbl'){$('#mbal').innerHTML='';return}
