@@ -304,6 +304,9 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .btt td.up{color:#1f8a4c}
 .btt td.dn{color:#d93025}
 @media (min-width:700px){#ms.wide{max-width:none!important;width:min(980px,94vw)!important}}
+.cnotes .fnt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;cursor:pointer}
+.cnotes .fnt.xp{white-space:normal;overflow:visible;text-overflow:clip}
+.fnt a{color:var(--ac);text-decoration:underline}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -751,7 +754,7 @@ $('#om').classList.remove('open');done&&done(full)};upd();$('#ncn').focus()}
 const feedMedia=r=>{const L=attList(r).filter(a=>a.t==='l'?/\.(mp4|webm|mov|m4v|ogv)$/i.test(a.u.split('?')[0]):/^(image|video)/.test(ft(a.f)||''));
 return L.length?`<div class="mstrip">${L.map(a=>a.t==='l'?`<div>${media(a.u)}</div>`:`<div class="fm" data-f="${a.f.id}" data-t="${esc(ft(a.f))}"></div>`).join('')}</div>`:''};
 const dkey=t=>loc(new Date(t)).slice(0,10);
-const archCard=r=>`<div class="card done" data-id="${r.id}"><div class="sa-l" aria-hidden="true">✓</div><div class="sa-r"><button type="button" data-a="del" aria-label="Удалить">🗑</button></div><div class="cin"><div class="cr"><div class="tile">${r.cat?catIcon(r.cat):'📝'}</div><div><div class="ct1">${esc(r.title)}</div>${(r.notes&&r.notes.length?r.notes:r.text?[r.text]:[]).map((t,i)=>`<div class="ct2 fn"><span class="fnn">${i+1}</span><span class="fnt">${esc(t)}</span></div>`).join('')}${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([r.when?'Было на '+shD(r.when.slice(0,10)):'',r.links.length?'🔗'+r.links.length:''].filter(Boolean).join(' · '))}</div><div class="ca"><button type="button" data-a="done" title="Вернуть в ленту" aria-label="Вернуть в ленту">↩</button><button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div></div></div>`;
+const archCard=r=>`<div class="card done" data-id="${r.id}"><div class="sa-l" aria-hidden="true">✓</div><div class="sa-r"><button type="button" data-a="del" aria-label="Удалить">🗑</button></div><div class="cin"><div class="cr"><div class="tile">${iconOf(r)}</div><div><div class="ct1">${linkify(r.title)}</div>${(r.notes&&r.notes.length?r.notes:r.text?[r.text]:[]).map((t,i)=>`<div class="ct2 fn"><span class="fnn">${i+1}</span><span class="fnt">${linkify(t)}</span></div>`).join('')}${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([r.when?'Было на '+shD(r.when.slice(0,10)):'',r.links.length?'🔗'+r.links.length:''].filter(Boolean).join(' · '))}</div><div class="ca"><button type="button" data-a="done" title="Вернуть в ленту" aria-label="Вернуть в ленту">↩</button><button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div></div></div>`;
 function archHtml(q){const A=items.filter(r=>r.done&&(!q||hay(r).includes(q))).sort((x,y)=>(y.doneAt||0)-(x.doneAt||0));
 let h=`<div class="dcap">Выполненные · хранятся 6 месяцев · видео, звук, фото и файлы удалены</div>`;
 if(!A.length)return h+'<p class="mu">'+(q?'Ничего не найдено.':'Здесь пока пусто.')+'</p>';
@@ -768,9 +771,9 @@ const dlbl=k=>{const d=new Date(k+'T00:00'),t0=loc(new Date()).slice(0,10);retur
 const skipWE=(k,n)=>{if(n!==2&&n!==4)return k;let d=k;while(isWE(d))d=addD(d,1);return d};
 const missed=r=>!r.done&&r.when&&r.when.slice(0,10)<loc(new Date()).slice(0,10);
 const SI={0:'📝',1:'🌅',2:'💼',3:'☀️',4:'🧸',5:'🌙'};
-const ch=r=>`<div class="card ${r.done?'done':''} ${missed(r)?'miss':''}" data-id="${r.id}"><div class="sa-l" aria-hidden="true">✓</div><div class="sa-r"><button type="button" data-a="move" aria-label="Перенести на следующий день">➡️</button></div><div class="cin"><div class="cr"><div class="tile" title="${esc(r.cat?catLabel(r.cat):'Без категории')}">${r.cat?catIcon(r.cat):'📝'}</div>
-<div><div class="ct1">${esc(r.title)}</div>${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([showDate&&r.when?dlbl(r.when.slice(0,10)):'',r.mt?'✉ '+r.mt:'',(n=>n?'🔗'+n:'')(r.links.filter(u=>!isMap(u)).length),(n=>n?'📍'+n:'')(r.links.filter(isMap).length),r.files.length?'📎'+r.files.length:''].filter(Boolean).join(' · '))}</div>
-<div class="ca">${r.done?'':'<span class="mvs"><button type="button" data-mv="-1" title="Выше" aria-label="Выше">▲</button><button type="button" data-mv="1" title="Ниже" aria-label="Ниже">▼</button></span>'}<button type="button" data-a="done" title="${r.done?'Вернуть':'Готово'}" aria-label="${r.done?'Вернуть':'Готово'}">${r.done?'↩':'✓'}</button><button type="button" data-a="edit" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div><div class="cnotes">${nlist(r).map((t,i)=>`<div class="ct2 fn ${pdone(r,i)?'nd':''}${isPr(r)&&!dueToday(r,i)?' nnd':''}${i>=3?' xhid':''}"${(r.det||[])[i]?` data-det="${i}"`:''}>${isPr(r)&&!r.done?`<button type="button" class="pchk${pdone(r,i)?' on':''}" data-na="done" data-ni="${i}" title="Отметить выполненным" aria-label="Отметить выполненным">${pdone(r,i)?'✓':''}</button>`:`<span class="fnn">${i+1}</span>`}<span class="fnt">${esc(t)}</span></div>`).join('')}</div>${nlist(r).length>3?`<button type="button" class="nmore" aria-label="Показать все подзадачи, всего ${nlist(r).length}">⋯<span class="nbd">${nlist(r).length}</span></button>`:''}${(x=>x?`<div class="md">${x}</div>`:'')(feedAudio(r))}${feedMedia(r)}</div></div>`;
+const ch=r=>`<div class="card ${r.done?'done':''} ${missed(r)?'miss':''}" data-id="${r.id}"><div class="sa-l" aria-hidden="true">✓</div><div class="sa-r"><button type="button" data-a="move" aria-label="Перенести на следующий день">➡️</button></div><div class="cin"><div class="cr"><div class="tile" title="${esc(r.cat?catLabel(r.cat):'Без категории')}">${iconOf(r)}</div>
+<div><div class="ct1">${linkify(r.title)}</div>${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([showDate&&r.when?dlbl(r.when.slice(0,10)):'',r.mt?'✉ '+r.mt:'',(n=>n?'🔗'+n:'')(r.links.filter(u=>!isMap(u)).length),(n=>n?'📍'+n:'')(r.links.filter(isMap).length),r.files.length?'📎'+r.files.length:''].filter(Boolean).join(' · '))}</div>
+<div class="ca">${r.done?'':'<span class="mvs"><button type="button" data-mv="-1" title="Выше" aria-label="Выше">▲</button><button type="button" data-mv="1" title="Ниже" aria-label="Ниже">▼</button></span>'}<button type="button" data-a="done" title="${r.done?'Вернуть':'Готово'}" aria-label="${r.done?'Вернуть':'Готово'}">${r.done?'↩':'✓'}</button><button type="button" data-a="edit" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div><div class="cnotes">${nlist(r).map((t,i)=>`<div class="ct2 fn ${pdone(r,i)?'nd':''}${isPr(r)&&!dueToday(r,i)?' nnd':''}${i>=3?' xhid':''}"${(r.det||[])[i]?` data-det="${i}"`:''}>${isPr(r)&&!r.done?`<button type="button" class="pchk${pdone(r,i)?' on':''}" data-na="done" data-ni="${i}" title="Отметить выполненным" aria-label="Отметить выполненным">${pdone(r,i)?'✓':''}</button>`:`<span class="fnn">${i+1}</span>`}<span class="fnt">${linkify(t)}</span></div>`).join('')}</div>${nlist(r).length>3?`<button type="button" class="nmore" aria-label="Показать все подзадачи, всего ${nlist(r).length}">⋯<span class="nbd">${nlist(r).length}</span></button>`:''}${(x=>x?`<div class="md">${x}</div>`:'')(feedAudio(r))}${feedMedia(r)}</div></div>`;
 function catUI(){const live=items.filter(r=>!r.done),c=n=>live.filter(r=>r.cat===n).length;
 const nv=(on,attr,ic,lab,n,x)=>`<div class="row" style="flex-wrap:nowrap"><button type="button" class="nv ${on?'on':''}" ${attr}><span>${ic} ${esc(lab)}</span><span>${n}</span></button>${x||''}</div>`,sep='<div class="cl-sep"></div>';
 const others=cats.filter(n=>n!=='Входящие').filter(c=>String(c).indexOf('Практикум')<0);
@@ -842,6 +845,18 @@ if(TCH){
  document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
  document.addEventListener('click',e=>{if(Date.now()-SWS.sw<350){e.stopPropagation();e.preventDefault()}},true);
 }
+/* значок по смыслу названия: ключевые слова; вручную можно поменять нажатием на значок */
+const KW_ICONS=[['молок|хлеб|продукт|купить|магазин|покупк','🛒'],['врач|доктор|таблет|аптек|лекарств|анализ','🏥'],['позвон|звонок|созвон','📞'],['письмо|почт|написать|email','✉️'],['зарядк|спорт|тренировк|турник|пробеж|планк|эспандер','🏃'],['стирк|белье|бельё|постельн|полотенц','🧺'],['уборк|пылесос|пыл|мыть|влажн|тряпоч','🧹'],['готов|обед|ужин|завтрак|заготов|кухн','🍳'],['оплат|счёт|счет|платёж|платеж|банк|кредит','💳'],['садик|ребен|ребён|детск','🧸'],['машин|авто|бензин|заправ','🚗'],['встреч|совещ','🤝'],['книг|учёб|учеб|английск|курс','📚'],['подарок|подарить','🎁'],['цвет','💐'],['собак|кошк|корм','🐾'],['шаг','👟'],['обув','👞'],['ногт','💅'],['бритв','🪒'],['унитаз','🚽'],['ai|generator|умные мысли','🤖']];
+function kwIcon_(title){const s=String(title||'').toLowerCase();for(const [re,ic] of KW_ICONS){if(new RegExp(re).test(s))return ic}return ''}
+function iconOf(r){return r.ico||kwIcon_(r.title)||(r.cat?catIcon(r.cat):'📝')}
+function linkify(s){return esc(String(s||'')).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>')}
+document.addEventListener('click',e=>{
+ const tile=e.target.closest&&e.target.closest('.card .tile');
+ if(tile){const card=tile.closest('.card[data-id]');const r=card&&items.find(x=>x.id===card.dataset.id);if(!r)return;e.stopPropagation();e.preventDefault();
+  const v=prompt('Значок (эмодзи). Пусто — выбирается по смыслу названия:',r.ico||'');if(v===null)return;r.ico=v.trim();save();render();return}
+ const fn=e.target.closest&&e.target.closest('.cnotes .fnt');
+ if(fn){e.stopPropagation();fn.classList.toggle('xp');return}
+},true);
 function hooks(root){
 root.querySelectorAll('.fm').forEach(async el=>{const blob=await get(el.dataset.f);if(!blob){el.innerHTML='<span class="mu">Файл хранится на другом устройстве</span>';return}const u=URL.createObjectURL(blob),t=el.dataset.t;
 if(t.startsWith('audio'))el.innerHTML=`<audio controls src="${u}"></audio>`;else if(t.startsWith('video'))el.innerHTML=`<video controls playsinline preload="metadata" src="${u}"></video>`;else if(t.startsWith('image'))el.innerHTML=`<img src="${u}" alt="" style="max-width:100%;border-radius:8px;margin-top:6px">`});
@@ -1328,6 +1343,12 @@ document.addEventListener('click',e=>{const p=$('#dmp');if(!p||p.hidden)return;c
 /* правая кнопка мыши: то же меню, что и ☰ (дела на год, категории, деньги, таблица, меню, настройка) */
 document.addEventListener('contextmenu',e=>{
  if(e.target.closest&&e.target.closest('input,textarea,select,[contenteditable]'))return;
+ const cardEl=e.target.closest&&e.target.closest('.card[data-id]');
+ if(cardEl){e.preventDefault();const r=items.find(x=>x.id===cardEl.dataset.id);if(!r)return;
+  const lines=[r.title,(r.when||'').slice(0,10)+(r.mt?' '+r.mt:'')].concat(nlist(r).map(x=>'— '+x));
+  const txt=lines.filter(Boolean).join('\n');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('Скопировано'),()=>toast('Не удалось скопировать'))}else{toast('Копирование недоступно')}
+  return}
  const p=document.getElementById('dmp');if(!p)return;
  e.preventDefault();
  p.style.left=Math.max(8,Math.min(e.clientX,innerWidth-250))+'px';
