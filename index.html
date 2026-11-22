@@ -377,7 +377,9 @@ async function get(id){if(mem[id])return mem[id];const d=await db();if(!d)return
 async function del(id){delete mem[id];const d=await db();if(d)try{d.transaction('b','readwrite').objectStore('b').delete(id)}catch(e){}}
 /* синхронизация */
 let pt=null;
-const payload=()=>JSON.stringify({items,gone,cats,catGone,catLive,money,catImg,plog,pvid,tbl2:ls.get('tbl2',null),bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tblcell:cellAll_(),tblts:+ls.get('tblts',0)||0,menu30:localStorage.getItem('menu30')||''});
+/* в синхронизацию идут отметки и числа только за последние 60 дней: ячейка Baza вмещает около 50 000 символов */
+function cellSync_(){const cut=Date.now()-60*864e5,a=cellAll_(),o={};Object.keys(a).forEach(k=>{if((a[k].t||0)>=cut)o[k]=a[k]});return o}
+const payload=()=>JSON.stringify({items,gone,cats,catGone,catLive,money,catImg,plog:plog.filter(x=>!x.u||x.u>Date.now()-60*864e5),pvid,tbl2:ls.get('tbl2',null),bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tblcell:cellSync_(),tblts:+ls.get('tblts',0)||0,menu30:localStorage.getItem('menu30')||''});
 function save(){ls.set('items',items);ls.set('cats',cats);ls.set('catgone',catGone);ls.set('catlive',catLive);ls.set('gone',gone);ls.set('money',money);ls.set('catimg',catImg);ls.set('plog',plog);ls.set('pvid',pvid);clearTimeout(pt);pt=setTimeout(push,700);wsDirty=true;if(wsc){clearTimeout(wst);wst=setTimeout(wsSync,1500)}}
 async function push(){if(!sdoc)return;try{await sdoc.set({p:payload()});sy(1)}catch(e){sy(0)}}
 function sy(ok){$('#sy').textContent=ok?'☁ Синхронизировано':'Только на этом устройстве'}
