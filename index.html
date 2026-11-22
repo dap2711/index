@@ -1105,6 +1105,9 @@ async function wsCall(body) {
   } finally { clearTimeout(tm); }
 }
 
+/* сжатие данных синхронизации: ячейка Baza вмещает ~50 000 символов, сжатый текст намного меньше */
+async function gzipB64_(s){const cs=new CompressionStream('gzip');const w=cs.writable.getWriter();w.write(new TextEncoder().encode(s));w.close();const u=new Uint8Array(await new Response(cs.readable).arrayBuffer());let bin='';for(let i=0;i<u.length;i+=8192)bin+=String.fromCharCode.apply(null,u.subarray(i,i+8192));return btoa(bin)}
+async function gunzipB64_(b){const bin=atob(b);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const ds=new DecompressionStream('gzip');const w=ds.writable.getWriter();w.write(u);w.close();return await new Response(ds.readable).text()}
 let wsAgain = false;
 async function wsSync(manual) {
   if (!wsc) return;
@@ -1113,6 +1116,7 @@ async function wsSync(manual) {
   const dirty = wsDirty; wsDirty = false;
   try {
     const a = await wsCall({ data: null }), b0 = wsSig();
+    if (a.data && a.data.z) a.data = JSON.parse(await gunzipB64_(a.data.z));
     if (a.data) {
       merge(a.data);
       if (a.data.menu30 && !dirty) localStorage.setItem('menu30', a.data.menu30);
@@ -1124,9 +1128,8 @@ async function wsSync(manual) {
       render(); if ($('#ms').classList.contains('open')) mList(); if ($('#ps').classList.contains('open')) renderTbl();
     }
     if (ch || dirty || !a.data || manual) {
-      const fullPayload = JSON.parse(payload());
-      fullPayload.menu30 = localStorage.getItem('menu30') || '';
-      await wsCall({ data: fullPayload });
+      const pz = await gzipB64_(payload());
+      await wsCall({ data: { z: pz, v: 2 } });
     }
     sy(1);
     const tm = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
