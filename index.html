@@ -514,6 +514,20 @@ document.addEventListener('click',e=>{
  applyDmCfg();
 },true);
 applyDmCfg();
+/* размер данных синхронизации: что занимает место (в символах) */
+async function sizeMount_(){
+ const box=$('#omb');if(!box)return;
+ const p=JSON.parse(payload());
+ const L=x=>JSON.stringify(x).length;
+ const parts=[['Дела',p.items],['Деньги',p.money],['Категории и настройки',[p.cats,p.catGone,p.catLive,p.catImg,p.menu30]],['Отметки и числа в таблицах',p.tblcell],['Списки таблиц',p.tbl2],['Остатки и доходы',p.bal],['Заметки',p.mnotes],['История (практикум)',p.plog],['Удалённые и прочее',[p.gone,p.pvid]]].map(([k,v])=>[k,L(v)]).sort((a,b)=>b[1]-a[1]);
+ const total=L(p);const zipped=(await gzipB64_(payload())).length;
+ const d=document.createElement('details');d.className='sgc';
+ const s=document.createElement('summary');s.textContent='Размер данных синхронизации';d.appendChild(s);
+ const w=document.createElement('div');
+ w.innerHTML='<div class="mu" style="font-size:12px;margin:0 0 6px">В ячейке Baza хранится сжатая копия: <b>'+zipped+'</b> символов из примерно 50 000. До сжатия всего: '+total+' символов.</div>'
+  +'<table style="width:100%;font-size:13px">'+parts.map(([k,v])=>'<tr><td style="padding:3px 0">'+esc(k)+'</td><td style="text-align:right;padding:3px 0">'+v+'</td></tr>').join('')+'</table>';
+ d.appendChild(w);box.appendChild(d);
+}
 function makeSettingsCollapsible(){
  const box=$('#omb');if(!box)return;
  const groups=[];let cur=[];
@@ -864,7 +878,7 @@ async function bkDrive(){const iu=document.getElementById('bku'),is=document.get
  try{const r=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'backup',secret:c.secret,name:bkName(),data:bkData()})});const tx=(await r.text()).trim();if(tx!=='ok')throw new Error(tx||'нет ответа');bkMark();toast('Копия сохранена на Google Диск')}
  catch(e){toast('Не удалось сохранить на Диск: '+e.message)}finally{if(b)b.disabled=false}}
 function bkSave(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bkData()],{type:'application/json'}));a.download=bkName();document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);bkMark();toast('Копия сохранена в папку загрузок')}
-$('#bset').onclick=()=>{winModal('Настройка','<b>Резервная копия</b><div class="mu" style="margin:4px 0 10px;font-size:13px">Дела, категории и деньги. Фото, аудио и видео в копию не входят.</div><div class="row"><button type="button" id="bsv" title="Сохранить копию" aria-label="Сохранить копию" style="font-size:22px;padding:8px 16px">💾</button><button type="button" id="brs" title="Восстановить из копии" aria-label="Восстановить из копии" style="font-size:22px;padding:8px 16px">📂</button><button type="button" id="bgd" title="Сохранить копию на Google Диск" aria-label="Сохранить копию на Google Диск" style="font-size:22px;padding:8px 16px">☁</button></div><div style="margin-top:8px;display:grid;gap:6px"><input id="bku" placeholder="Адрес скрипта копий (/exec)" style="width:100%;box-sizing:border-box;padding:8px;font-size:14px"><input id="bks" placeholder="Секрет скрипта копий" style="width:100%;box-sizing:border-box;padding:8px;font-size:14px"></div><hr style="border:0;border-top:1px solid var(--bd);margin:16px 0"><div style=\"margin-top:16px\"><label class=\"row\" style=\"gap:8px;align-items:center;cursor:pointer\"><input type=\"checkbox\" id=\"nix\" style=\"width:auto\"><b>Запретить поисковым роботам</b></label><div class=\"mu\" style=\"margin:4px 0 0;font-size:13px\">Страница не будет попадать в поиск Google, Яндекса и других сервисов.</div></div><hr style="border:0;border-top:1px solid var(--bd);margin:16px 0"><div style="margin-top:16px"><b>Таблица CSV</b><div class="mu" style="margin:4px 0 10px;font-size:13px">Открывается в Excel и Google Таблицах. При импорте строки с известным id обновляются, остальные добавляются.</div><div class="row"><button type="button" id="csx">⬇ Экспорт</button><button type="button" id="csi">⬆ Импорт</button></div></div><hr style="border:0;border-top:1px solid var(--bd);margin:16px 0">'+wsHtml());wsBind();$('#csx').onclick=csvExport;$('#csi').onclick=()=>$('#csf').click();$('#bsv').onclick=bkSave;if($('#bgd'))$('#bgd').onclick=bkDrive;$('#brs').onclick=()=>$('#bfi').click();$('#nix').checked=noIdx();$('#nix').onchange=e=>setNoIdx(e.target.checked);makeSettingsCollapsible();dmSettingsMount_()};
+$('#bset').onclick=()=>{winModal('Настройка','<b>Резервная копия</b><div class="mu" style="margin:4px 0 10px;font-size:13px">Дела, категории и деньги. Фото, аудио и видео в копию не входят.</div><div class="row"><button type="button" id="bsv" title="Сохранить копию" aria-label="Сохранить копию" style="font-size:22px;padding:8px 16px">💾</button><button type="button" id="brs" title="Восстановить из копии" aria-label="Восстановить из копии" style="font-size:22px;padding:8px 16px">📂</button><button type="button" id="bgd" title="Сохранить копию на Google Диск" aria-label="Сохранить копию на Google Диск" style="font-size:22px;padding:8px 16px">☁</button></div><div style="margin-top:8px;display:grid;gap:6px"><input id="bku" placeholder="Адрес скрипта копий (/exec)" style="width:100%;box-sizing:border-box;padding:8px;font-size:14px"><input id="bks" placeholder="Секрет скрипта копий" style="width:100%;box-sizing:border-box;padding:8px;font-size:14px"></div><hr style="border:0;border-top:1px solid var(--bd);margin:16px 0"><div style=\"margin-top:16px\"><label class=\"row\" style=\"gap:8px;align-items:center;cursor:pointer\"><input type=\"checkbox\" id=\"nix\" style=\"width:auto\"><b>Запретить поисковым роботам</b></label><div class=\"mu\" style=\"margin:4px 0 0;font-size:13px\">Страница не будет попадать в поиск Google, Яндекса и других сервисов.</div></div><hr style="border:0;border-top:1px solid var(--bd);margin:16px 0"><div style="margin-top:16px"><b>Таблица CSV</b><div class="mu" style="margin:4px 0 10px;font-size:13px">Открывается в Excel и Google Таблицах. При импорте строки с известным id обновляются, остальные добавляются.</div><div class="row"><button type="button" id="csx">⬇ Экспорт</button><button type="button" id="csi">⬆ Импорт</button></div></div><hr style="border:0;border-top:1px solid var(--bd);margin:16px 0">'+wsHtml());wsBind();$('#csx').onclick=csvExport;$('#csi').onclick=()=>$('#csf').click();$('#bsv').onclick=bkSave;if($('#bgd'))$('#bgd').onclick=bkDrive;$('#brs').onclick=()=>$('#bfi').click();$('#nix').checked=noIdx();$('#nix').onchange=e=>setNoIdx(e.target.checked);makeSettingsCollapsible();dmSettingsMount_();sizeMount_()};
 $('#bfi').onchange=e=>{const fl=e.target.files[0];e.target.value='';if(!fl)return;const fr=new FileReader();fr.onload=()=>{let o;try{o=JSON.parse(fr.result)}catch(x){}
 if(!o||o.app!=='napominalka'||!Array.isArray(o.items)){toast('Это не файл копии Напоминалки');return}
 if(!confirm('Объединить копию ('+o.items.length+' дел) с текущими данными? Более новые версии дел сохранятся.'))return;
@@ -1212,10 +1226,10 @@ toastA('Запись удалена','Отменить',()=>{m.rows.push(r);dele
 /* раздел «Деньги»: таблица остатков (банки, наличка, биржа, долги, динамика) и таблица доходов по категориям */
 const BAL_INC=['Дивиденты','ХЭК','Садик','Марпи'];
 function balMonths_(){const o=[];let y=2026,m=11;for(let n=0;n<14;n++){o.push(y+'-'+String(m).padStart(2,'0'));m++;if(m>12){m=1;y++}}return o}
-function balData(){const d=ls.get('bal',{cells:{}});d.months=balMonths_();d.cells=d.cells||{};return d}
+function balData(){const d=ls.get('bal',{cells:{}});d.months=balMonths_();d.cells=d.cells||{};d.inc=d.inc||{};return d}
 function balSave(d){ls.set('bal',d);tblTouch_()}
 function balTot_(c){return (+c.bank||0)+(+c.cash||0)+(+c.stock||0)}
-function balInc_(ym){const R=money.inc.rows.filter(r=>r.d.slice(0,7)===ym);const o={};BAL_INC.forEach(k=>{o[k]=R.filter(r=>r.c===k).reduce((s,r)=>s+r.a,0)});o.other=R.filter(r=>BAL_INC.indexOf(r.c)<0).reduce((s,r)=>s+r.a,0);o.total=BAL_INC.reduce((s,k)=>s+o[k],0)+o.other;return o}
+function balInc_(ym){const R=money.inc.rows.filter(r=>r.d.slice(0,7)===ym);const ad=(balData().inc||{})[ym]||{};const o={};BAL_INC.forEach(k=>{o[k]=R.filter(r=>r.c===k).reduce((s,r)=>s+r.a,0)+(+ad[k]||0)});o.other=R.filter(r=>BAL_INC.indexOf(r.c)<0).reduce((s,r)=>s+r.a,0)+(+ad.other||0);o.total=BAL_INC.reduce((s,k)=>s+o[k],0)+o.other;return o}
 /* строчки для записей под таблицами: «＋» добавляет строку, «Сохранить» записывает все строки */
 let mnDraft=null;
 function mnInit_(){if(mnDraft===null)mnDraft=ls.get('mnotes',['']);if(!Array.isArray(mnDraft)||!mnDraft.length)mnDraft=[''];return mnDraft}
@@ -1237,11 +1251,12 @@ function renderMoneyTables(){
   a+='<tr><th>'+lab(ym)+'</th><td class="tot">'+fmt(tot(ym))+'</td>'+['bank','cash','stock','debt'].map(f=>'<td class="bc" data-bal="'+ym+'|'+f+'">'+(c[f]?fmt(c[f]):'')+'</td>').join('')+'<td class="'+dc+'">'+(dyn===null?'—':(dyn>0?'+':'')+fmt(dyn))+'</td></tr>'});
  a+='</table></div></details>';
  let b='<details class="bt" open><summary>Доходы по месяцам</summary><div class="btw"><table class="btt"><tr><th>Месяц</th><th>Всего</th>'+BAL_INC.map(k=>'<th>'+k+'</th>').join('')+'<th>Другое</th></tr>';
- ms.forEach(ym=>{const o=balInc_(ym);b+='<tr><th>'+lab(ym)+'</th><td class="tot">'+fmt(o.total)+'</td>'+BAL_INC.map(k=>'<td>'+(o[k]?fmt(o[k]):'')+'</td>').join('')+'<td>'+(o.other?fmt(o.other):'')+'</td></tr>'});
+ ms.forEach(ym=>{const o=balInc_(ym);b+='<tr><th>'+lab(ym)+'</th><td class="tot">'+fmt(o.total)+'</td>'+BAL_INC.map(k=>'<td class="bc" data-inc="'+ym+'|'+k+'">'+(o[k]?fmt(o[k]):'')+'</td>').join('')+'<td class="bc" data-inc="'+ym+'|other">'+(o.other?fmt(o.other):'')+'</td></tr>'});
  b+='</table></div></details>';
  $('#mbal').innerHTML=a+b+mnHtml_();
 }
 document.addEventListener('click',e=>{
+ const ic=e.target.closest&&e.target.closest('#mbal td[data-inc]');if(ic){const[ym,k]=ic.dataset.inc.split('|');const d=balData();d.inc[ym]=d.inc[ym]||{};const cur=+d.inc[ym][k]||0;const v=prompt('Добавка к сумме из разделов «Доход»: число — задать; +число — прибавить; -число — вычесть',cur?String(cur):'');if(v===null)return;const s=String(v).replace(/\s/g,'').replace(',','.');if(s===''){d.inc[ym][k]=0;balSave(d);renderMoneyTables();return}const n=parseFloat(s);if(isNaN(n)){toast('Введите число');return}d.inc[ym][k]=/^[+-]/.test(s)?cur+n:n;balSave(d);renderMoneyTables();return}
  const bc=e.target.closest&&e.target.closest('#mbal td[data-bal]');if(bc){const[ym,f]=bc.dataset.bal.split('|');const d=balData();d.cells[ym]=d.cells[ym]||{};const cur=+d.cells[ym][f]||0;const v=prompt('Сумма: число — заменить (пусто — очистить); +число — прибавить; -число — вычесть',cur?String(cur):'');if(v===null)return;const s=String(v).replace(/\s/g,'').replace(',','.');if(s===''){d.cells[ym][f]=0;balSave(d);renderMoneyTables();return}const n=parseFloat(s);if(isNaN(n)){toast('Введите число');return}d.cells[ym][f]=/^[+-]/.test(s)?cur+n:n;balSave(d);renderMoneyTables();return}
  const ba=e.target.closest&&e.target.closest('[data-bal-add]');
  if(ba){const m=document.getElementById('balm').value;if(!m){toast('Выберите месяц');return}const d=balData();if(d.months.indexOf(m)<0){d.months.push(m);d.months.sort()}balSave(d);renderMoneyTables();return}
