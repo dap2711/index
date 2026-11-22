@@ -519,13 +519,18 @@ async function sizeMount_(){
  const box=$('#omb');if(!box)return;
  const p=JSON.parse(payload());
  const L=x=>JSON.stringify(x).length;
- const parts=[['Дела',p.items],['Деньги',p.money],['Категории и настройки',[p.cats,p.catGone,p.catLive,p.catImg,p.menu30]],['Отметки и числа в таблицах',p.tblcell],['Списки таблиц',p.tbl2],['Остатки и доходы',p.bal],['Заметки',p.mnotes],['История (практикум)',p.plog],['Удалённые и прочее',[p.gone,p.pvid]]].map(([k,v])=>[k,L(v)]).sort((a,b)=>b[1]-a[1]);
+ const parts=[['Дела',p.items],['Деньги',p.money],['Категории и настройки',[p.cats,p.catGone,p.catLive,p.catImg,p.menu30]],['Отметки и числа в таблицах',p.tblcell],['Списки таблиц',p.tbl2],['Остатки и доходы',p.bal],['Заметки',p.mnotes],['История (практикум)',p.plog],['Удалённые и прочее',[p.gone,p.pvid]]];
+ const rows=[];
+ for(const [k,v] of parts){rows.push([k,L(v),(await gzipB64_(JSON.stringify(v))).length])}
+ rows.sort((a,b)=>b[2]-a[2]);
  const total=L(p);const zipped=(await gzipB64_(payload())).length;
  const d=document.createElement('details');d.className='sgc';
  const s=document.createElement('summary');s.textContent='Размер данных синхронизации';d.appendChild(s);
  const w=document.createElement('div');
  w.innerHTML='<div class="mu" style="font-size:12px;margin:0 0 6px">В ячейке Baza хранится сжатая копия: <b>'+zipped+'</b> символов из примерно 50 000. До сжатия всего: '+total+' символов.</div>'
-  +'<table style="width:100%;font-size:13px">'+parts.map(([k,v])=>'<tr><td style="padding:3px 0">'+esc(k)+'</td><td style="text-align:right;padding:3px 0">'+v+'</td></tr>').join('')+'</table>';
+  +'<table style="width:100%;font-size:13px"><tr style="color:var(--mu);font-size:12px"><td style="padding:3px 0">Раздел</td><td style="text-align:right">до сжатия</td><td style="text-align:right">после сжатия</td></tr>'
+  +rows.map(([k,a1,a2])=>'<tr><td style="padding:3px 0">'+esc(k)+'</td><td style="text-align:right;padding:3px 0">'+a1+'</td><td style="text-align:right;padding:3px 0"><b>'+a2+'</b></td></tr>').join('')+'</table>'
+  +'<div class="mu" style="font-size:11px;margin-top:6px">После сжатия по разделам — примерные: сжатие всех данных вместе выигрывает немного больше.</div>';
  d.appendChild(w);box.appendChild(d);
 }
 function makeSettingsCollapsible(){
