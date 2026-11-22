@@ -344,7 +344,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 <div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="dal" title="Спросить Алису (Яндекс)" aria-label="Спросить Алису">🟣</button><button type="button" id="dgm" title="Спросить Gemini" aria-label="Спросить Gemini">✨</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
 <div id="cm"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" id="cpv" aria-label="Предыдущий месяц">‹</button><b id="cmt"></b><button type="button" id="cnx" aria-label="Следующий месяц">›</button></div><div class="cg mu" style="margin-bottom:4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cg" id="cgd"></div><div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" id="cnd">Без даты</button><button type="button" id="cx">Закрыть</button></div></div></div>
 <div id="bar"><button type="button" class="p" id="nb">＋ Новое</button></div>
-<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><button type="button" data-dm="aig">🤖 AI generator</button><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" data-dm="set" style="width:100%;text-align:left">⚙ Настройка</button></div>
+<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" data-dm="set" style="width:100%;text-align:left">⚙ Настройка</button></div>
 <script>
 
 const $=s=>document.querySelector(s);
@@ -483,28 +483,34 @@ optModal('Повторение',[['','Не повторять'],['d','Кажды
 $('#mra').onclick=()=>{$('#rp').value='n';$('#rn').value=Math.max(1,+$('#mrn').value||1);$('#ru').value=$('#mru').value;rcShow();icons();$('#om').classList.remove('open')}};
 
 /* настройки: разделы сворачиваются; адрес и секрет скрипта писем — здесь */
-/* меню (☰ и правая кнопка): какие пункты показывать, какую категорию открывает «AI generator» */
-const DM_ITEMS=[['all','🗓 Дела на год'],['cat','🗂 Категории'],['aig','🤖 AI generator'],['mny','💰 Деньги'],['prb','📋 Таблица'],['mnb','🍽 Меню'],['set','⚙ Настройка']];
-function dmCfg_(){const c=ls.get('dmcfg',{})||{};return {hide:Array.isArray(c.hide)?c.hide:[],aig:c.aig||''}}
-function dmAigName_(){const c=dmCfg_();if(c.aig)return c.aig;const f=cats.find(x=>/ai\s*generator/i.test(String(x)));return f||'AI generator'}
-function applyDmCfg(){const c=dmCfg_();document.querySelectorAll('#dmp [data-dm]').forEach(b=>{const id=b.dataset.dm;b.hidden=c.hide.indexOf(id)>=0;if(id==='aig')b.textContent='🤖 '+dmAigName_()})}
+/* меню (☰ и правая кнопка): постоянные пункты + категории, которые выбраны в настройках */
+function dmCats_(){const c=ls.get('dmcats',null);if(Array.isArray(c))return c;const f=cats.find(x=>/ai\s*generator/i.test(String(x)));return f?[f]:[]}
+function openCatFromMenu(nm){if(!cats.includes(nm)){cats.push(nm);catLive[nm]=Date.now();save()}impF=false;secF=0;arcF=false;catF=nm;render()}
+function applyDmCfg(){
+ const box=$('#dmp');if(!box)return;
+ box.querySelectorAll('.dmc').forEach(e=>e.remove());
+ const anchor=box.querySelector('[data-dm="mny"]');
+ dmCats_().forEach(nm=>{const btn=document.createElement('button');btn.type='button';btn.className='dmc';btn.dataset.dm='c:'+nm;btn.textContent='🏷 '+nm;box.insertBefore(btn,anchor)});
+}
 function dmSettingsMount_(){
  const box=$('#omb');if(!box)return;
- const c=dmCfg_();
+ const sel=dmCats_();
  const d=document.createElement('details');d.className='sgc';
  const s=document.createElement('summary');s.textContent='Меню (правая кнопка)';d.appendChild(s);
  const w=document.createElement('div');
- w.innerHTML='<div class="mu" style="font-size:12px;margin:0 0 6px">Отметьте пункты, которые нужны в меню.</div>'
-  +DM_ITEMS.map(([id,lab])=>'<label style="display:flex;gap:8px;align-items:center;padding:4px 0"><input type="checkbox" data-dmc="'+id+'"'+(c.hide.indexOf(id)<0?' checked':'')+'><span>'+esc(lab)+'</span></label>').join('')
-  +'<div class="mu" style="font-size:12px;margin:8px 0 4px">Категория для пункта «AI generator»</div>'
-  +'<select id="dmAig" style="width:100%;padding:8px;font-size:14px">'+cats.filter(x=>String(x).indexOf('Практикум')<0).map(x=>'<option value="'+esc(x)+'"'+(x===dmAigName_()?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';
+ const all=cats.filter(x=>String(x).indexOf('Практикум')<0&&String(x).indexOf('__')!==0);
+ w.innerHTML='<div class="mu" style="font-size:12px;margin:0 0 6px">Дела на год, деньги, таблица, меню и настройка всегда в меню. Здесь выберите категории, которые тоже должны быть в меню.</div>'
+  +'<div style="display:flex;flex-wrap:wrap;gap:6px">'+all.map(nm=>'<button type="button" data-dmcat="'+esc(nm)+'" style="padding:4px 8px;font-size:12px;border-radius:999px;border:1px solid var(--bd);background:'+(sel.indexOf(nm)>=0?'var(--ac)':'var(--sf)')+';color:'+(sel.indexOf(nm)>=0?'#fff':'var(--tx)')+'">'+esc(nm)+'</button>').join('')+'</div>';
  d.appendChild(w);box.appendChild(d);
 }
-document.addEventListener('change',e=>{
- const cb=e.target.closest&&e.target.closest('[data-dmc]');
- if(cb){const c=dmCfg_();const id=cb.dataset.dmc;c.hide=c.hide.filter(x=>x!==id);if(!cb.checked)c.hide.push(id);ls.set('dmcfg',{hide:c.hide,aig:c.aig});applyDmCfg();return}
- if(e.target.id==='dmAig'){const c=dmCfg_();ls.set('dmcfg',{hide:c.hide,aig:e.target.value});applyDmCfg()}
-});
+document.addEventListener('click',e=>{
+ const b=e.target.closest&&e.target.closest('[data-dmcat]');if(!b)return;
+ const nm=b.dataset.dmcat;let sel=dmCats_().slice();
+ if(sel.indexOf(nm)>=0)sel=sel.filter(x=>x!==nm);else sel.push(nm);
+ ls.set('dmcats',sel);
+ const on=sel.indexOf(nm)>=0;b.style.background=on?'var(--ac)':'var(--sf)';b.style.color=on?'#fff':'var(--tx)';
+ applyDmCfg();
+},true);
 applyDmCfg();
 function makeSettingsCollapsible(){
  const box=$('#omb');if(!box)return;
@@ -1286,7 +1292,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(
 function toggleDmp(){const p=$('#dmp'),b=$('#dmt'),r=b.getBoundingClientRect();p.style.left=Math.max(8,r.left)+'px';p.style.top=(r.bottom+6)+'px';p.hidden=!p.hidden}
 document.addEventListener('click',e=>{const p=$('#dmp');if(!p||p.hidden)return;const inP=e.target.closest&&e.target.closest('#dmp'),it=inP&&e.target.closest('[data-dm]');
  if(inP||!e.target.closest('#dmt'))p.hidden=true;
- if(it){({all:()=>setMode('all'),aig:()=>{const nm=dmAigName_();if(!cats.includes(nm)){cats.push(nm);catLive[nm]=Date.now();save()}impF=false;secF=0;arcF=false;catF=nm;render()},set:()=>{},cat:()=>{catUI();tg('c',true)},mny:openMoney,prb:openPr,mnb:openMen})[it.dataset.dm]()}},true);
+ if(it){(()=>{const k=it.dataset.dm;if(k.indexOf('c:')===0){openCatFromMenu(k.slice(2));return}({all:()=>setMode('all'),cat:()=>{catUI();tg('c',true)},mny:openMoney,prb:openPr,mnb:openMen,set:()=>{}})[k]()})()}},true);
 </script>
 <script>
 /* правая кнопка мыши: то же меню, что и ☰ (дела на год, категории, деньги, таблица, меню, настройка) */
