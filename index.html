@@ -1092,10 +1092,15 @@ const wsSig = () => JSON.stringify([items.map(r => r.id + ':' + (r.u || 0)).sort
 const wsMsg = t => { const e = $('#wsm'); if (e) e.textContent = t };
 
 async function wsCall(body) {
-  const r = await fetch(wsc.u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ pass: wsc.p, ...body }) });
-  const j = await r.json();
-  if (j.error) throw new Error(j.error);
-  return j;
+  const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 90000);
+  try {
+    const r = await fetch(wsc.u, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ pass: wsc.p, ...body }) });
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+    return j;
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? 'нет ответа от сервера (90 сек)' : e.message);
+  } finally { clearTimeout(tm); }
 }
 
 let wsAgain = false;
@@ -1138,7 +1143,7 @@ async function wsFiles() {
   const refs = new Map(); items.forEach(r => (r.files || []).forEach(f => refs.set(f.id, f)));
   const L = await wsCall({ act: 'list' }), srv = L.files || {}, LIM = 5; let up = 0, dn = 0, bad = 0, more = false, last = '';
   for (const [id, f] of refs) {
-    if (srv[id]) continue; const b = await get(id); if (!b) continue; if (up >= LIM) { more = true; break; }
+    if (srv[id]) continue; const b = await get(id); if (!b) continue; if (b.size > 8388608) { bad++; last = 'файл больше 8 МБ — удалите его и добавьте снова'; continue; } if (up >= LIM) { more = true; break; }
     try { await wsCall({ act: 'put', id: id, type: f.type || b.type, b64: await toB64(b) }); up++; } catch (e) { bad++; last = e.message; }
   }
   for (const [id, f] of refs) {
