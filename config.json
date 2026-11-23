@@ -1,0 +1,18 @@
+{
+  "keywords": [
+    "нейросеть",
+    "ai",
+    "релиз",
+    "обновление"
+  ],
+  "feeds": [
+    {
+      "name": "Habr AI",
+      "url": "https://habr.com"
+    },
+    {
+      "name": "OpenAI Blog",
+      "url": "https://openai.com"
+    }
+  ]
+}
