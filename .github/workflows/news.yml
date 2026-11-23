@@ -1,1 +1,41 @@
+name: Сбор и перевод новостей
+
+on:
+  schedule:
+    # Автозапуск каждые 2 часа
+    - cron: '0 */2 * * *'
+  # Разрешает ручной запуск по кнопке Run workflow
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  models: read
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Скачивание файлов репозитория
+        uses: actions/checkout@v4
+
+      - name: Настройка Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Установка библиотек для RSS и ИИ
+        run: pip install feedparser openai requests
+
+      - name: Запуск скрипта сбора новостей
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python fetch_news.py
+
+      - name: Сохранение обновленного news.json в репозиторий
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add news.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Обновление новостей" && git push)
 
