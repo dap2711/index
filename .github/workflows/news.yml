@@ -2,10 +2,12 @@ name: Сбор и перевод новостей
 
 on:
   schedule:
-    # Автозапуск каждые 2 часа
     - cron: '0 */2 * * *'
-  # Разрешает ручной запуск по кнопке Run workflow
   workflow_dispatch:
+  push:
+    paths:
+      - 'config.json'
+      - '.github/workflows/news.yml'
 
 permissions:
   contents: write
@@ -24,7 +26,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Установка библиотек для RSS и ИИ
+      - name: Установка библиотек
         run: pip install feedparser openai requests
 
       - name: Запуск скрипта сбора новостей
@@ -32,10 +34,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python fetch_news.py
 
-      - name: Сохранение обновленного news.json в репозиторий
+      - name: Сохранение обновленного news.json
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add news.json
           git diff --quiet && git diff --staged --quiet || (git commit -m "Обновление новостей" && git push)
-
