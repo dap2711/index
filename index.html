@@ -322,6 +322,8 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .dnote .fch{display:inline-block;color:var(--ac);font-size:22px;line-height:1;padding:0 6px;transition:transform .15s}
 .dnote.xp .fch{transform:rotate(90deg)}
 .dnote .fh{cursor:pointer}
+.dmp a.dmlink{display:block;text-align:left;padding:10px 12px;border-radius:10px;color:var(--tx);text-decoration:none;font-size:15px}
+.dmp a.dmlink:active{background:var(--ac2)}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -362,7 +364,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 <div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="dal" title="Спросить Алису (Яндекс)" aria-label="Спросить Алису">🟣</button><button type="button" id="dgm" title="Спросить Gemini" aria-label="Спросить Gemini">✨</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
 <div id="cm"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" id="cpv" aria-label="Предыдущий месяц">‹</button><b id="cmt"></b><button type="button" id="cnx" aria-label="Следующий месяц">›</button></div><div class="cg mu" style="margin-bottom:4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cg" id="cgd"></div><div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" id="cnd">Без даты</button><button type="button" id="cx">Закрыть</button></div></div></div>
 <div id="bar"><button type="button" class="p" id="nb">＋ Новое</button></div>
-<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" data-dm="set" style="width:100%;text-align:left">⚙ Настройка</button></div>
+<div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><a class="dmlink" href="news.html" target="_blank" rel="noopener">📰 Новости</a><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" data-dm="set" style="width:100%;text-align:left">⚙ Настройка</button></div>
 <script>
 
 const $=s=>document.querySelector(s);
@@ -821,6 +823,8 @@ const base=items.filter(r=>!r.done&&!isPr(r)&&(!catF||r.cat===catF)&&(!impF||r.i
 const multi=!isDay(mode);showDate=false;
 const srt=(x,y)=>{const a=(x.when||'').slice(0,10),b=(y.when||'').slice(0,10);if(a!==b)return a<b?-1:1;const ox=x.o==null?1e9:x.o,oy=y.o==null?1e9:y.o;return ox!==oy?ox-oy:(x.id<y.id?-1:1)};
 h+=`<div class="dcap">${multi?(mode==='month'?'Дела на месяц':'Все дела'):dlbl(selD)}</div>`;
+const MSD=loc(new Date()).slice(0,10);
+if(!multi&&selD===MSD){const MS=items.filter(r=>missed(r)).sort(srt);if(MS.length)h+='<div class="missbox"><div class="t">Не сделано ('+MS.length+')</div>'+MS.map(ch).join('')+'</div>';}
 [...new Set(base.map(r=>r.when?r.when.slice(0,10):'~'))].sort().forEach(k=>{
 const L=base.filter(r=>(r.when?r.when.slice(0,10):'~')===k),LI=L.filter(r=>r.imp).sort(srt),LN=L.filter(r=>!r.imp),order=k!=='~'&&isWE(k)?[1,3,5]:[1,2,3,4,5];let g='';
 if(LI.length)g+=`<div class="impbox"><div class="t">⭐ Важное</div>${LI.map(ch).join('')}</div>`;
@@ -1083,19 +1087,25 @@ function dayPlanned_(it,day){
  return false;
 }
 function tblDayBlock_(){
- const days=tblDays_();
- let h='<details class="tbm" open><summary>Дела на день <span class="cnt">'+TBL_DAY.length+' дел</span></summary><div class="tbw"><table class="tbt"><tr><th>Дата</th>'+TBL_DAY.map(it=>'<th>'+esc(it.name)+'</th>').join('')+'</tr>';
+ const days=tblDays_(),its=dayItems_();
  const WDS=['вс','пн','вт','ср','чт','пт','сб'];
- days.forEach(dy=>{const wd=new Date(ud(dy)*864e5).getUTCDay();h+='<tr'+(wd===1?' class="wk"':'')+'><th class="ts">'+dy.slice(8,10)+'.'+dy.slice(5,7)+' '+WDS[wd]+'</th>'+TBL_DAY.map(it=>{const k='d|'+it.id+'|'+dy;return '<td class="tc '+tblState_('d',it,dy)+'" data-tk="'+esc(k)+'">'+tcVal_(k)+'</td>'}).join('')+'</tr>'});
- return h+'</table></div></details>';
+ let h='<details class="tbm" open><summary>Дела на день <span class="cnt">'+its.length+' дел</span></summary><div class="tbw"><table class="tbt"><tr><th>Дата</th>'+its.map(it=>'<th>'+esc(it.name)+'</th>').join('')+'</tr>';
+ days.forEach(dy=>{const wd=new Date(ud(dy)*864e5).getUTCDay();h+='<tr'+(wd===1?' class="wk"':'')+'><th class="ts">'+dy.slice(8,10)+'.'+dy.slice(5,7)+' '+WDS[wd]+'</th>'+its.map(it=>{const k='d|'+it.id+'|'+dy;return '<td class="tc '+tblState_('d',it,dy)+'" data-tk="'+esc(k)+'">'+tcVal_(k)+'</td>'}).join('')+'</tr>'});
+ return h+'</table></div><details class="tbl-edit"><summary>Список дел: изменить или удалить</summary>'+dayAddForm_(its)+'</details></details>';
 }
 function tblAddForm_(kind,items){
- let h='<div class="tbl-list">';
- items.forEach(it=>{h+='<div class="tbl-row"><span>'+esc(it.name)+'</span><button type="button" class="tbl-del" data-del="'+kind+'|'+it.id+'">✕</button></div>'});
- h+='<div class="tbl-new"><input id="tn_'+kind+'" placeholder="Новое дело" style="flex:1;min-width:0">';
+ let h='<div class="tbl-new"><input id="tn_'+kind+'" placeholder="Новое дело" style="flex:1;min-width:0">';
  if(kind==='w')h+='<select id="te_'+kind+'"><option value="1">каждую неделю</option><option value="2">через неделю (с 28.11)</option></select>';
  if(kind==='y')h+='<select id="te_'+kind+'"><option value="11">ноябрь</option><option value="12">декабрь</option><option value="1112">ноябрь и декабрь</option><option value="0">не назначено</option></select>';
- return h+'<button type="button" class="tbl-add" data-add="'+kind+'">Добавить</button></div></div>';
+ h+='<button type="button" class="tbl-add" data-add="'+kind+'">Добавить</button></div><div class="tbl-list">';
+ items.forEach(it=>{h+='<div class="tbl-row"><span>'+esc(it.name)+'</span><button type="button" class="tbl-del" data-del="'+kind+'|'+it.id+'">✕</button></div>'});
+ return h+'</div>';
+}
+function dayItems_(){const a=ls.get('tblday',null);return Array.isArray(a)?a:TBL_DAY}
+function dayAddForm_(its){
+ let h='<div class="tbl-new"><input id="tn_d" placeholder="Новое дело" style="flex:1;min-width:0"><select id="te_d"><option value="daily">каждый день</option><option value="mwf">пн, ср, пт</option><option value="tts">вт, чт, сб</option></select><button type="button" class="tbl-add" data-add="d">Добавить</button></div><div class="tbl-list">';
+ its.forEach(it=>{h+='<div class="tbl-row"><span>'+esc(it.name)+'</span><button type="button" class="tbl-del" data-del="d|'+it.id+'">✕</button></div>'});
+ return h+'</div>';
 }
 function tblBlock_(kind,title,cols,lab,items){
  let h='<details class="tbm" open><summary>'+title+' <span class="cnt">'+items.length+' дел</span></summary><div class="tbw"><table class="tbt"><tr><th></th>'+cols.map(c=>'<th>'+lab(c)+'</th>').join('')+'</tr>';
@@ -1122,9 +1132,10 @@ document.addEventListener('click',e=>{
  else{const n=parseFloat(s.replace(',','.'));if(isNaN(n)){toast('Введите число');return}cellSet_(k,{d:1,v:n})}
  renderTbl();return}
  const del=e.target.closest&&e.target.closest('[data-del]');
- if(del){const[kind,id]=del.dataset.del.split('|');const d=tblData();d[kind]=d[kind].filter(x=>x.id!==id);ls.set('tbl2',d);tblTouch_();renderTbl();return}
+ if(del){const[kind,id]=del.dataset.del.split('|');if(kind==='d'){ls.set('tblday',dayItems_().filter(x=>x.id!==id));tblTouch_();renderTbl();return}const d=tblData();d[kind]=d[kind].filter(x=>x.id!==id);ls.set('tbl2',d);tblTouch_();renderTbl();return}
  const add=e.target.closest&&e.target.closest('[data-add]');
  if(add){const kind=add.dataset.add,nm=(document.getElementById('tn_'+kind).value||'').trim();if(!nm){toast('Введите название дела');return}
+  if(kind==='d'){const arr=dayItems_().slice();arr.push({id:'d'+Date.now(),name:nm,start:loc(new Date()).slice(0,10),rule:document.getElementById('te_d').value});ls.set('tblday',arr);tblTouch_();renderTbl();return}
   const d=tblData(),id=kind+Date.now();
   if(kind==='w'){const ev=+document.getElementById('te_w').value;d.w.push({id,name:nm,from:ev===2?'2026-11-28':TBL_W0,every:ev})}
   else if(kind==='m'){d.m.push({id,name:nm})}
@@ -1157,14 +1168,14 @@ const wsSig = () => JSON.stringify([items.map(r => r.id + ':' + (r.u || 0)).sort
 const wsMsg = t => { const e = $('#wsm'); if (e) e.textContent = t };
 
 async function wsCall(body) {
-  const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 90000);
+  const ac = new AbortController(), tm = setTimeout(() => ac.abort(), (body && (body.act === 'put' || body.act === 'get')) ? 60000 : 25000);
   try {
     const r = await fetch(wsc.u, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ pass: wsc.p, ...body }) });
     const j = await r.json();
     if (j.error) throw new Error(j.error);
     return j;
   } catch (e) {
-    throw new Error(e.name === 'AbortError' ? 'нет ответа от сервера (90 сек)' : e.message);
+    throw new Error(e.name === 'AbortError' ? 'нет ответа от сервера' : e.message);
   } finally { clearTimeout(tm); }
 }
 
@@ -1212,7 +1223,7 @@ async function wsFiles() {
   const L = await wsCall({ act: 'list' }), srv = L.files || {}, LIM = 5; let up = 0, dn = 0, bad = 0, more = false, last = '';
   for (const [id, f] of refs) {
     if (srv[id]) continue; const b = await get(id); if (!b) continue; if (b.size > 8388608) { bad++; last = 'файл больше 8 МБ — удалите его и добавьте снова'; continue; } if (up >= LIM) { more = true; break; }
-    try { await wsCall({ act: 'put', id: id, type: f.type || b.type, b64: await toB64(b) }); up++; } catch (e) { bad++; last = e.message; }
+    try { await wsCall({ act: 'put', id: id, type: f.type || b.type, b64: await toB64(b) }); up++; } catch (e) { bad++; last = e.message; if (/нет ответа|fetch|сети/i.test(e.message)) { more = true; break; } }
   }
   for (const [id, f] of refs) {
     if (!srv[id] || await get(id)) continue; if (dn >= LIM) { more = true; break; }
