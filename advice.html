@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Совет</title>
+<style>
+body{margin:0;padding:max(14px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;color:#1b1f1c;background:#fff}
+.back{display:inline-block;margin-bottom:14px;color:#2e7d5b;text-decoration:none;font-size:16px;padding:6px 0}
+h1{font-size:21px;margin:0 0 12px;font-weight:600}
+.ans{white-space:pre-wrap;font-size:17px;line-height:1.65}
+.mu{color:#6a736d;font-size:15px}
+.btn{display:block;width:100%;margin-top:22px;padding:14px;border-radius:14px;border:0;background:#2e7d5b;color:#fff;font:inherit;font-size:16px;font-weight:600}
+.btn:disabled{opacity:.6}
+.subs{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.sub{padding:12px 14px;border-radius:12px;border:1px solid #cfd8d3;background:#f6f9f7;text-align:left;font:inherit;font-size:16px;color:#1b1f1c}
+.block{margin-top:22px;padding-top:16px;border-top:1px solid #e3e9e5}
+@media (prefers-color-scheme:dark){body{background:#121a16;color:#e6efe9}.back{color:#4cc79a}.mu{color:#9baba1}.sub{background:#1b2620;border-color:#2c3a33;color:#e6efe9}.block{border-color:#2c3a33}}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Назад к напоминалке</a>
+<div id="out"></div>
+<script>
+(function(){
+ var out=document.getElementById('out');
+ function cfg(){try{return JSON.parse(localStorage.getItem('nap_mailcfg'))}catch(e){return null}}
+ function ask(mode,text){
+  var c=cfg();
+  if(!c||!c.url||!c.secret)return Promise.reject(new Error('не задан адрес писем в настройках напоминалки'));
+  return fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'advice',mode:mode,secret:c.secret,text:text})})
+   .then(function(r){return r.text()}).then(function(tx){tx=(tx||'').trim();if(tx.indexOf('error')===0)throw new Error(tx);return tx});
+ }
+ function block(){var d=document.createElement('div');d.className='block';out.appendChild(d);return d}
+ var req=null;try{req=JSON.parse(localStorage.getItem('advice_req'))}catch(e){}
+ if(req){
+  var h=document.createElement('h1');h.textContent=req.title;out.appendChild(h);
+  var ans=document.createElement('div');ans.className='ans';ans.textContent='Думаю...';out.appendChild(ans);
+  ask('full','Мне нужен совет по: '+req.title).then(function(tx){ans.textContent=tx;
+   var b=document.createElement('button');b.className='btn';b.textContent='Помочь с подзадачей';
+   out.appendChild(b);
+   var box=document.createElement('div');box.className='subs';out.appendChild(box);
+   b.onclick=function(){
+    b.style.display='none';
+    if(!req.subs||!req.subs.length){box.innerHTML='<div class="mu">У этого дела нет подзадач.</div>';return}
+    req.subs.forEach(function(s){
+     var sb=document.createElement('button');sb.className='sub';sb.textContent=s;
+     sb.onclick=function(){
+      sb.disabled=true;var old=sb.textContent;sb.textContent='Думаю...';
+      var res=block();res.innerHTML='<div class="mu">'+s.replace(/</g,'&lt;')+'</div><div class="ans"></div>';
+      ask('sub','Мне нужна помощь с подзадачей: '+s+'. Дело: '+req.title).then(function(tx){res.querySelector('.ans').textContent=tx;sb.textContent=old;sb.disabled=false})
+       .catch(function(e){res.querySelector('.ans').textContent='Не получилось: '+e.message;sb.textContent=old;sb.disabled=false});
+     };
+     box.appendChild(sb);
+    });
+   };
+  }).catch(function(e){ans.textContent='Не получилось: '+e.message});
+  return;
+ }
+ var raw=localStorage.getItem('advice_last');
+ if(raw){var d=JSON.parse(raw);var h2=document.createElement('h1');h2.textContent=d.title||'Совет';var t=document.createElement('div');t.className='ans';t.textContent=d.text||'';out.appendChild(h2);out.appendChild(t);return}
+ out.innerHTML='<p class="mu">Совета пока нет. Вернитесь в напоминалку и нажмите 💡 у дела.</p>';
+})();
+</script>
+</body>
+</html>

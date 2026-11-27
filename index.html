@@ -329,6 +329,10 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .secretline .sword{background:#fff;color:#fff;border:0;padding:0;font:inherit;font-size:15px;cursor:pointer}
 .trow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:0.5px solid var(--bd)}
 .trow .tt2{font-size:14px;color:var(--tx)}
+.adv{background:var(--sf);color:var(--tx);border:1px solid var(--bd)}
+.advl{display:none;align-items:center;justify-content:center;width:30px;height:30px;border:0;background:transparent;font-size:18px;cursor:pointer;padding:0;margin-right:4px;flex:none}
+html:not(.touch) .advl{display:inline-flex}
+.touch .advl{display:none}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -368,7 +372,7 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 <label class="row" style="margin-top:12px;gap:8px;flex-wrap:nowrap"><input type="checkbox" id="dsw" checked style="width:auto"><span>Записывать текст речи в заметку</span></label><div id="dst" class="mu" style="margin-top:6px"></div></div></div>
 <div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="dal" title="Спросить Алису (Яндекс)" aria-label="Спросить Алису">🟣</button><button type="button" id="dgm" title="Спросить Gemini" aria-label="Спросить Gemini">✨</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
 <div id="cm"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" id="cpv" aria-label="Предыдущий месяц">‹</button><b id="cmt"></b><button type="button" id="cnx" aria-label="Следующий месяц">›</button></div><div class="cg mu" style="margin-bottom:4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cg" id="cgd"></div><div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" id="cnd">Без даты</button><button type="button" id="cx">Закрыть</button></div></div></div>
-<div id="bar"><button type="button" class="p" id="nb">＋ Новое</button></div>
+<div id="bar"><button type="button" id="advBtn" class="adv" title="Совет на день">🧠 Совет</button><button type="button" class="p" id="nb">＋ Новое</button></div>
 <div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><a class="dmlink" href="news.html" target="_blank" rel="noopener">📰 Новости</a><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" data-dm="set" style="width:100%;text-align:left">⚙ Настройка</button></div>
 <script>
 
@@ -405,7 +409,7 @@ async function del(id){delete mem[id];const d=await db();if(d)try{d.transaction(
 let pt=null;
 /* в синхронизацию идут отметки и числа только за последние 60 дней: ячейка Baza вмещает около 50 000 символов */
 function cellSync_(){const cut=Date.now()-60*864e5,a=cellAll_(),o={};Object.keys(a).forEach(k=>{if((a[k].t||0)>=cut)o[k]=a[k]});return o}
-const payload=()=>JSON.stringify({items,gone,cats,catGone,catLive,money,catImg,plog:plog.filter(x=>!x.u||x.u>Date.now()-60*864e5),pvid,tbl2:ls.get('tbl2',null),bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tblcell:cellSync_(),tblts:+ls.get('tblts',0)||0,menu30:localStorage.getItem('menu30')||'',nap_mailcfg:ls.get('nap_mailcfg',null),nap_bkcfg:ls.get('nap_bkcfg',null),cfgts:+ls.get('cfgts',0)||0,trash:ls.get('trash',[]),secretNote:ls.get('secretNote',''),secretts:+ls.get('secretts',0)||0});
+const payload=()=>JSON.stringify({items,gone,cats,catGone,catLive,money,catImg,plog:plog.filter(x=>!x.u||x.u>Date.now()-60*864e5),pvid,tbl2:ls.get('tbl2',null),bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tblcell:cellSync_(),tblts:+ls.get('tblts',0)||0,menu30:localStorage.getItem('menu30')||'',nap_mailcfg:ls.get('nap_mailcfg',null),nap_bkcfg:ls.get('nap_bkcfg',null),cfgts:+ls.get('cfgts',0)||0,trash:ls.get('trash',[]),tblday:ls.get('tblday',null),dmcats:ls.get('dmcats',null),secretNote:ls.get('secretNote',''),secretts:+ls.get('secretts',0)||0});
 function save(){ls.set('items',items);ls.set('cats',cats);ls.set('catgone',catGone);ls.set('catlive',catLive);ls.set('gone',gone);ls.set('money',money);ls.set('catimg',catImg);ls.set('plog',plog);ls.set('pvid',pvid);clearTimeout(pt);pt=setTimeout(push,700);wsDirty=true;if(wsc){clearTimeout(wst);wst=setTimeout(wsSync,1500)}}
 async function push(){if(!sdoc)return;try{await sdoc.set({p:payload()});sy(1)}catch(e){sy(0)}}
 function sy(ok){$('#sy').textContent=ok?'☁ Синхронизировано':'Только на этом устройстве'}
@@ -535,7 +539,7 @@ document.addEventListener('click',e=>{
  const b=e.target.closest&&e.target.closest('[data-dmcat]');if(!b)return;
  const nm=b.dataset.dmcat;let sel=dmCats_().slice();
  if(sel.indexOf(nm)>=0)sel=sel.filter(x=>x!==nm);else sel.push(nm);
- ls.set('dmcats',sel);
+ ls.set('dmcats',sel);cfgTouch_();
  const on=sel.indexOf(nm)>=0;b.style.background=on?'var(--ac)':'var(--sf)';b.style.color=on?'#fff':'var(--tx)';
  applyDmCfg();
 },true);
@@ -794,7 +798,7 @@ const dlbl=k=>{const d=new Date(k+'T00:00'),t0=loc(new Date()).slice(0,10);retur
 const skipWE=(k,n)=>{if(n!==2&&n!==4)return k;let d=k;while(isWE(d))d=addD(d,1);return d};
 const missed=r=>!r.done&&r.when&&r.when.slice(0,10)<loc(new Date()).slice(0,10);
 const SI={0:'📝',1:'🌅',2:'💼',3:'☀️',4:'🧸',5:'🌙'};
-const ch=r=>`<div class="card ${r.done?'done':''} ${missed(r)?'miss':''}" data-id="${r.id}"><div class="sa-l" aria-hidden="true">✓</div><div class="sa-r"><button type="button" data-a="move" aria-label="Перенести на следующий день">➡️</button></div><div class="cin"><div class="cr"><div class="tile" title="${esc(r.cat?catLabel(r.cat):'Без категории')}">${iconOf(r)}</div>
+const ch=r=>`<div class="card ${r.done?'done':''} ${missed(r)?'miss':''}" data-id="${r.id}"><div class="sa-l" aria-hidden="true">✓</div><div class="sa-r"><button type="button" data-a="move" aria-label="Перенести на следующий день">➡️</button><button type="button" data-a="advice" aria-label="Совет">💡</button></div><div class="cin"><div class="cr"><button type="button" class="advl" data-a="advice" title="Совет" aria-label="Совет">💡</button><div class="tile" title="${esc(r.cat?catLabel(r.cat):'Без категории')}">${iconOf(r)}</div>
 <div><div class="ct1">${linkify(r.title)}</div>${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([showDate&&r.when?dlbl(r.when.slice(0,10)):'',r.mt?'✉ '+r.mt:'',(n=>n?'🔗'+n:'')(r.links.filter(u=>!isMap(u)).length),(n=>n?'📍'+n:'')(r.links.filter(isMap).length),r.files.length?'📎'+r.files.length:''].filter(Boolean).join(' · '))}</div>
 <div class="ca">${r.done?'':'<span class="mvs"><button type="button" data-mv="-1" title="Выше" aria-label="Выше">▲</button><button type="button" data-mv="1" title="Ниже" aria-label="Ниже">▼</button></span>'}<button type="button" data-a="done" title="${r.done?'Вернуть':'Готово'}" aria-label="${r.done?'Вернуть':'Готово'}">${r.done?'↩':'✓'}</button><button type="button" data-a="edit" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div><div class="cnotes">${nlist(r).map((t,i)=>`<div class="ct2 fn ${pdone(r,i)?'nd':''}${isPr(r)&&!dueToday(r,i)?' nnd':''}${i>=3?' xhid':''}"${(r.det||[])[i]?` data-det="${i}"`:''}>${isPr(r)&&!r.done?`<button type="button" class="pchk${pdone(r,i)?' on':''}" data-na="done" data-ni="${i}" title="Отметить выполненным" aria-label="Отметить выполненным">${pdone(r,i)?'✓':''}</button>`:`<span class="fnn">${i+1}</span>`}<span class="fnt fnt2">${linkify(String(t).split('\n').slice(0,2).join('\n')).replace(/\n/g,'<br>')}</span></div>`).join('')}</div>${nlist(r).length>3?`<button type="button" class="nmore" aria-label="Показать все подзадачи, всего ${nlist(r).length}">⋯<span class="nbd">${nlist(r).length}</span></button>`:''}${(x=>x?`<div class="md">${x}</div>`:'')(feedAudio(r))}${feedMedia(r)}</div></div>`;
 /* скрытая заметка: строка «. секрет» видна только по слову; текст синхронизируется между устройствами */
@@ -826,6 +830,40 @@ document.addEventListener('click',e=>{
  const a=e.target.closest&&e.target.closest('[data-arch]');if(a){openArch_();return}
  const tb=e.target.closest&&e.target.closest('[data-atab]');if(tb){archBody_(tb.dataset.atab);return}
  const u=e.target.closest&&e.target.closest('[data-undone]');if(u){const r=items.find(x=>x.id===u.dataset.undone);if(r){r.done=false;r.doneAt=0;r.u=Date.now();save();render();toast('Возвращено в работу');archBody_('done')}return}
+},true);
+/* совет по одному делу: выбираете дело — короткий совет открывается на отдельной странице advice.html */
+document.addEventListener('click',async e=>{
+ if(e.target.closest&&e.target.closest('#advBtn')){
+  const today=loc(new Date()).slice(0,10);
+  const L=items.filter(r=>!r.done&&r.when&&r.when.slice(0,10)===today).sort(srt);
+  if(!L.length){toast('На сегодня дел нет');return}
+  winModal('Совет по делу','<div style="display:flex;flex-direction:column;gap:8px">'+L.map(r=>'<button type="button" class="p" data-advone="'+esc(r.id)+'" style="text-align:left">'+esc(r.title)+'</button>').join('')+'</div>');
+  return;
+ }
+ const ob=e.target.closest&&e.target.closest('[data-advone]');if(!ob)return;
+ const r=items.find(x=>x.id===ob.dataset.advone);if(!r)return;
+ const c=ls.get('nap_mailcfg',null);
+ if(!c||!c.url||!c.secret){toast('Сначала укажите адрес писем в настройках');return}
+ const text=r.title+nlist(r).map(x=>'\n· '+String(x).split('\n')[0]).join('');
+ const old=ob.textContent;ob.disabled=true;ob.textContent='Думаю...';
+ try{
+  const res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'advice',mode:'one',secret:c.secret,text})});
+  const tx=(await res.text()).trim();
+  if(!res.ok||tx.indexOf('error')===0)throw new Error(tx||'нет ответа');
+  localStorage.setItem('advice_last',JSON.stringify({title:r.title,text:tx,item:text}));
+  const x=document.getElementById('omx');if(x)x.click();
+  window.open('advice.html','_blank');
+ }catch(err){toast('Не получилось: '+err.message)}
+ finally{ob.disabled=false;ob.textContent=old}
+},true);
+if(matchMedia('(pointer:coarse)').matches)document.documentElement.classList.add('touch');
+/* совет по делу: кнопка 💡 (свайп на телефоне, слева в карточке на компьютере) открывает страницу advice.html */
+document.addEventListener('click',e=>{
+ const ab=e.target.closest&&e.target.closest('[data-a="advice"]');if(!ab)return;
+ const card=ab.closest('.card[data-id]');const r=card&&items.find(x=>x.id===card.dataset.id);if(!r)return;
+ e.stopPropagation();e.preventDefault();
+ localStorage.setItem('advice_req',JSON.stringify({id:r.id,title:r.title,subs:nlist(r).map(x=>String(x).split('\n')[0])}));
+ window.open('advice.html','_blank');
 },true);
 function catUI(){const live=items.filter(r=>!r.done),c=n=>live.filter(r=>r.cat===n).length;
 const nv=(on,attr,ic,lab,n,x)=>`<div class="row" style="flex-wrap:nowrap"><button type="button" class="nv ${on?'on':''}" ${attr}><span>${ic} ${esc(lab)}</span><span>${n}</span></button>${x||''}</div>`,sep='<div class="cl-sep"></div>';
@@ -1096,10 +1134,10 @@ function tcVal_(k){const c=cellAll_()[k];return (c&&c.v!=null)?c.v:''}
 function tblTouch_(){ls.set('tblts',Date.now());wsDirty=true;if(wsc){clearTimeout(wst);wst=setTimeout(wsSync,1500)}}
 function mergeCells_(rc){if(!rc)return;const all=cellAll_();Object.keys(rc).forEach(k=>{if(!all[k]||(rc[k].t||0)>(all[k].t||0))all[k]=rc[k]});ls.set('tblcell',all)}
 function cfgTouch_(){ls.set('cfgts',Date.now());tblTouch_()}
-function mergeCfg_(rm){if(Array.isArray(rm.trash)){const mp=new Map();ls.get('trash',[]).concat(rm.trash).forEach(x=>{const o=mp.get(x.id);if(!o||(x.delAt||0)>(o.delAt||0))mp.set(x.id,x)});trash=[...mp.values()];ls.set('trash',trash)}if((+rm.secretts||0)>(+ls.get('secretts',0)||0)){ls.set('secretNote',rm.secretNote||'');ls.set('secretts',rm.secretts)}if((+rm.cfgts||0)>(+ls.get('cfgts',0)||0)){if(rm.nap_mailcfg)ls.set('nap_mailcfg',rm.nap_mailcfg);if(rm.nap_bkcfg)ls.set('nap_bkcfg',rm.nap_bkcfg);ls.set('cfgts',rm.cfgts)}}
+function mergeCfg_(rm){if(rm.dmcats&&(+rm.cfgts||0)>(+ls.get('cfgts',0)||0))ls.set('dmcats',rm.dmcats);if(Array.isArray(rm.trash)){const mp=new Map();ls.get('trash',[]).concat(rm.trash).forEach(x=>{const o=mp.get(x.id);if(!o||(x.delAt||0)>(o.delAt||0))mp.set(x.id,x)});trash=[...mp.values()];ls.set('trash',trash)}if((+rm.secretts||0)>(+ls.get('secretts',0)||0)){ls.set('secretNote',rm.secretNote||'');ls.set('secretts',rm.secretts)}if((+rm.cfgts||0)>(+ls.get('cfgts',0)||0)){if(rm.nap_mailcfg)ls.set('nap_mailcfg',rm.nap_mailcfg);if(rm.nap_bkcfg)ls.set('nap_bkcfg',rm.nap_bkcfg);ls.set('cfgts',rm.cfgts)}}
 function mergeTables_(rm){
  const lt=+ls.get('tblts',0)||0,rt=+rm.tblts||0;const ct=Math.max(0,...Object.values(rm.tblcell||{}).map(c=>+c.t||0));
- if(rt>lt){if(rm.tbl2)ls.set('tbl2',rm.tbl2);if(rm.bal)ls.set('bal',rm.bal);if(Array.isArray(rm.mnotes))ls.set('mnotes',rm.mnotes);ls.set('tblts',rt)}
+ if(rt>lt){if(rm.tblday)ls.set('tblday',rm.tblday);if(rm.tbl2)ls.set('tbl2',rm.tbl2);if(rm.bal)ls.set('bal',rm.bal);if(Array.isArray(rm.mnotes))ls.set('mnotes',rm.mnotes);ls.set('tblts',rt)}
  mergeCells_(rm.tblcell);
  const nt=Math.max(lt,rt,ct);if(nt>lt)ls.set('tblts',nt);
 }
