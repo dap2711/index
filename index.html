@@ -333,6 +333,8 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .advl{display:none;align-items:center;justify-content:center;width:30px;height:30px;border:0;background:transparent;font-size:18px;cursor:pointer;padding:0;margin-right:4px;flex:none}
 html:not(.touch) .advl{display:inline-flex}
 .touch .advl{display:none}
+html:not(.touch) .cr{grid-template-columns:30px 40px 1fr auto}
+html:not(.touch) .cr>.advl{justify-self:center}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -372,7 +374,7 @@ html:not(.touch) .advl{display:inline-flex}
 <label class="row" style="margin-top:12px;gap:8px;flex-wrap:nowrap"><input type="checkbox" id="dsw" checked style="width:auto"><span>Записывать текст речи в заметку</span></label><div id="dst" class="mu" style="margin-top:6px"></div></div></div>
 <div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="dal" title="Спросить Алису (Яндекс)" aria-label="Спросить Алису">🟣</button><button type="button" id="dgm" title="Спросить Gemini" aria-label="Спросить Gemini">✨</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
 <div id="cm"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" id="cpv" aria-label="Предыдущий месяц">‹</button><b id="cmt"></b><button type="button" id="cnx" aria-label="Следующий месяц">›</button></div><div class="cg mu" style="margin-bottom:4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cg" id="cgd"></div><div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" id="cnd">Без даты</button><button type="button" id="cx">Закрыть</button></div></div></div>
-<div id="bar"><button type="button" id="advBtn" class="adv" title="Совет на день">🧠 Совет</button><button type="button" class="p" id="nb">＋ Новое</button></div>
+<div id="bar"><button type="button" class="p" id="nb">＋ Новое</button></div>
 <div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><a class="dmlink" href="news.html" target="_blank" rel="noopener">📰 Новости</a><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" data-dm="set" style="width:100%;text-align:left">⚙ Настройка</button></div>
 <script>
 
