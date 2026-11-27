@@ -1,0 +1,54 @@
+{
+  "feeds": [
+    {
+      "name": "YouTube Канал 1",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCRP4EhX1Op-jL7D87PB3qhQ",
+      "type": "youtube"
+    },
+    {
+      "name": "YouTube Канал 2",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCb3wmSL2LvANH_4O-C_G_YQ",
+      "type": "youtube"
+    },
+    {
+      "name": "YouTube Канал 3",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCJCR3IMdS5zHNh1OAQd7vMg",
+      "type": "youtube"
+    },
+    {
+      "name": "YouTube Канал 4",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCT_AKsYn-zjTC12CjCyp3dw",
+      "type": "youtube"
+    },
+    {
+      "name": "YouTube Канал 5",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCENpHj4RqKfxaAGbiDp0QAA",
+      "type": "youtube"
+    },
+    {
+      "name": "Google Alerts",
+      "url": "https://www.google.ru/alerts/feeds/08456254248112104362/4776587085158093073",
+      "type": "google_alert"
+    }
+  ],
+  "blocked_domains": [
+    "pinterest.com",
+    "wildberries.ru",
+    "ozon.ru",
+    "avito.ru",
+    "youtube.com/shorts"
+  ],
+  "stop_words": [
+    "промокод",
+    "скидка",
+    "розыгрыш",
+    "гороскоп",
+    "купить курс",
+    "erid:"
+  ],
+  "settings": {
+    "max_items": 50,
+    "similarity_threshold": 0.6,
+    "ai_spam_filter": true
+  }
+}
