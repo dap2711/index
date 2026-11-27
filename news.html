@@ -3,138 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Новости</title>
+  <title>Лента новостей</title>
   <style>
+    :root {
+      --bg: #ffffff;
+      --card-bg: #f6f6f4;
+      --accent: #225c3b;
+      --accent-light: #e8f1ec;
+      --text: #1a1c1b;
+      --muted: #68706c;
+      --border: #e4e6e5;
+    }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 16px;
-      background-color: #ffffff;
-      color: #1f2328;
+      background-color: var(--bg);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
     .container {
-      max-width: 720px;
+      max-width: 760px;
       margin: 0 auto;
     }
-    .top-bar {
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-left {
       display: flex;
       align-items: center;
+      gap: 14px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0;
+      color: var(--accent);
+    }
+    .home-link {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: var(--card-bg);
+    }
+    .controls {
+      display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
-    .menu-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 36px;
-      border-radius: 10px;
-      border: 1px solid #d0d7de;
-      background: #ffffff;
-      color: #1f2328;
-      text-decoration: none;
-      font-size: 18px;
     }
     .tab-btn {
-      border: 1px solid #d0d7de;
-      background: #ffffff;
-      color: #1f2328;
-      border-radius: 18px;
-      padding: 7px 14px;
-      font-size: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
     }
     .tab-btn.active {
-      background: #225c3b;
+      background: var(--accent);
       color: #ffffff;
-      border-color: #225c3b;
-    }
-    .section-label {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      color: #225c3b;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    .card-wrap {
-      position: relative;
-      margin-bottom: 12px;
-      border-radius: 14px;
-      overflow: hidden;
-      background: #eaf3ee;
-    }
-    .swipe-bg {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      font-size: 18px;
-      font-weight: 600;
-      color: #225c3b;
-      pointer-events: none;
+      border-color: var(--accent);
     }
     .card {
-      position: relative;
-      background: #f6f6f4;
+      background: var(--card-bg);
       border-radius: 14px;
-      padding: 15px 16px;
-      transition: transform 0.2s ease, opacity 0.2s ease;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      transition: opacity 0.25s ease, transform 0.2s ease;
+      position: relative;
       touch-action: pan-y;
+      user-select: none;
     }
-    .card.is-read {
-      opacity: 0.55;
+    .card.read {
+      opacity: 0.48;
+    }
+    .card-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
     }
     .title-row {
       display: flex;
       align-items: flex-start;
-      gap: 8px;
-      margin-bottom: 8px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
-    .desktop-icons {
+    .pc-icons {
+      display: flex;
+      gap: 6px;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--muted);
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-      margin-top: 2px;
+      justify-content: center;
+      font-size: 14px;
+      padding: 0;
+    }
+    .icon-btn.active-read {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+    .icon-btn.active-fav {
+      color: #d97706;
+      border-color: #f59e0b;
+      background: #fffbeb;
     }
     @media (hover: none) and (pointer: coarse) {
-      .desktop-icons {
+      .pc-icons {
         display: none;
       }
     }
-    .icon-btn {
-      background: none;
-      border: none;
-      padding: 2px 4px;
-      cursor: pointer;
-      font-size: 15px;
-      color: #8c959f;
-      line-height: 1;
-    }
-    .icon-btn.active-read {
-      color: #225c3b;
-    }
-    .icon-btn.active-fav {
-      color: #d4a017;
-    }
-    .card-title {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 700;
+    .card h2 {
+      font-size: 17px;
       line-height: 1.35;
-      color: #1f2328;
+      margin: 0;
+      color: var(--text);
     }
-    .card-summary {
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      line-height: 1.45;
-      color: #32383f;
+    .summary {
+      font-size: 15px;
+      line-height: 1.5;
+      color: #2b302d;
+      margin: 0 0 12px 0;
       white-space: pre-line;
       display: -webkit-box;
       -webkit-line-clamp: 3;
@@ -142,9 +152,9 @@
       overflow: hidden;
     }
     .orig-link {
-      font-size: 13px;
-      color: #225c3b;
+      color: var(--accent);
       text-decoration: none;
+      font-size: 14px;
       font-weight: 500;
     }
     .orig-link:hover {
@@ -152,194 +162,150 @@
     }
     .empty {
       text-align: center;
-      color: #656d76;
-      padding: 40px 0;
-      font-size: 14px;
+      color: var(--muted);
+      padding: 40px 16px;
+      font-size: 15px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="top-bar">
-      <a href="index.html" class="menu-btn" title="На главную">☰</a>
-      <button class="tab-btn active" id="tab-all" onclick="setTab('all')">Все новости</button>
-      <button class="tab-btn" id="tab-fav" onclick="setTab('fav')">Сохранённые (<span id="fav-count">0</span>)</button>
-      <button class="tab-btn" id="tab-unread" onclick="toggleHideRead()">Скрыть прочитанные</button>
-    </div>
-
-    <div class="section-label">НОВОСТИ</div>
-    <div id="news-list" class="empty">Загрузка новостей...</div>
+    <header>
+      <div class="header-left">
+        <a href="index.html" class="home-link">← На сайт</a>
+        <h1>Новости</h1>
+      </div>
+      <div class="controls">
+        <button class="tab-btn active" id="btn-all" onclick="setTab('all')">Все</button>
+        <button class="tab-btn" id="btn-fav" onclick="setTab('fav')">Избранное (<span id="fav-count">0</span>)</button>
+        <button class="tab-btn" id="btn-hide-read" onclick="toggleHideRead()">Скрыть прочитанные</button>
+      </div>
+    </header>
+    <div id="list" class="empty">Загрузка новостей...</div>
   </div>
 
   <script>
-    let allNews = [];
+    let allItems = [];
     let currentTab = 'all';
     let hideRead = false;
 
-    const getRead = () => JSON.parse(localStorage.getItem('news_read') || '[]');
-    const getFavs = () => JSON.parse(localStorage.getItem('news_favs') || '[]');
+    const getReadIds = () => new Set(JSON.parse(localStorage.getItem('news_read_ids') || '[]'));
+    const saveReadIds = (set) => localStorage.setItem('news_read_ids', JSON.stringify([...set]));
 
-    function toggleRead(url) {
-      let read = getRead();
-      if (read.includes(url)) {
-        read = read.filter(u => u !== url);
+    const getFavItems = () => JSON.parse(localStorage.getItem('news_fav_items') || '{}');
+    const saveFavItems = (obj) => localStorage.setItem('news_fav_items', JSON.stringify(obj));
+
+    function toggleRead(id, forceRead = null) {
+      const readSet = getReadIds();
+      if (forceRead === true) {
+        readSet.add(id);
+      } else if (readSet.has(id)) {
+        readSet.delete(id);
       } else {
-        read.push(url);
+        readSet.add(id);
       }
-      localStorage.setItem('news_read', JSON.stringify(read));
+      saveReadIds(readSet);
       render();
     }
 
-    function markRead(url) {
-      let read = getRead();
-      if (!read.includes(url)) {
-        read.push(url);
-        localStorage.setItem('news_read', JSON.stringify(read));
-        render();
-      }
-    }
-
-    function toggleFav(item) {
-      let favs = getFavs();
-      const idx = favs.findIndex(f => f.url === item.url);
-      if (idx >= 0) {
-        favs.splice(idx, 1);
+    function toggleFav(id) {
+      const favs = getFavItems();
+      if (favs[id]) {
+        delete favs[id];
       } else {
-        favs.unshift(item);
+        const item = allItems.find(x => (x.id || x.url) === id);
+        if (item) favs[id] = item;
       }
-      localStorage.setItem('news_favs', JSON.stringify(favs));
+      saveFavItems(favs);
       render();
     }
 
     function setTab(tab) {
       currentTab = tab;
-      document.getElementById('tab-all').classList.toggle('active', tab === 'all');
-      document.getElementById('tab-fav').classList.toggle('active', tab === 'fav');
+      document.getElementById('btn-all').classList.toggle('active', tab === 'all');
+      document.getElementById('btn-fav').classList.toggle('active', tab === 'fav');
       render();
     }
 
     function toggleHideRead() {
       hideRead = !hideRead;
-      document.getElementById('tab-unread').classList.toggle('active', hideRead);
+      document.getElementById('btn-hide-read').classList.toggle('active', hideRead);
       render();
     }
 
     function render() {
-      const container = document.getElementById('news-list');
-      const readList = getRead();
-      const favList = getFavs();
-      document.getElementById('fav-count').textContent = favList.length;
+      const container = document.getElementById('list');
+      const readSet = getReadIds();
+      const favs = getFavItems();
+      document.getElementById('fav-count').textContent = Object.keys(favs).length;
 
-      let list = currentTab === 'fav' ? favList : allNews;
+      let sourceList = currentTab === 'fav' ? Object.values(favs) : allItems;
       if (hideRead && currentTab === 'all') {
-        list = list.filter(i => !readList.includes(i.url));
+        sourceList = sourceList.filter(item => !readSet.has(item.id || item.url));
       }
 
-      if (!list.length) {
+      if (!sourceList.length) {
         container.className = 'empty';
-        container.textContent = currentTab === 'fav' ? 'Нет сохранённых новостей.' : 'Нет новостей для отображения.';
+        container.textContent = currentTab === 'fav'
+          ? 'В избранном пока пусто. Свайпните карточку справа налево (или нажмите ★ на ПК).'
+          : 'Новостей пока нет.';
         return;
       }
 
       container.className = '';
-      container.innerHTML = '';
+      container.innerHTML = sourceList.map(item => {
+        const id = item.id || item.url;
+        const isRead = readSet.has(id);
+        const isFav = Boolean(favs[id]);
+        return `
+          <article class="card ${isRead ? 'read' : ''}" data-id="${encodeURIComponent(id)}">
+            <div class="card-meta">${item.source || 'Источник'} • ${item.date || ''}</div>
+            <div class="title-row">
+              <div class="pc-icons">
+                <button class="icon-btn ${isRead ? 'active-read' : ''}" title="Прочитано" onclick="toggleRead(decodeURIComponent('${encodeURIComponent(id)}'))">✓</button>
+                <button class="icon-btn ${isFav ? 'active-fav' : ''}" title="В избранное" onclick="toggleFav(decodeURIComponent('${encodeURIComponent(id)}'))">${isFav ? '★' : '☆'}</button>
+              </div>
+              <h2>${item.title}</h2>
+            </div>
+            <p class="summary">${item.summary}</p>
+            <a href="${item.url}" target="_blank" rel="noopener" class="orig-link" onclick="toggleRead(decodeURIComponent('${encodeURIComponent(id)}'), true)">Читать оригинал →</a>
+          </article>
+        `;
+      }).join('');
 
-      list.forEach(item => {
-        const isRead = readList.includes(item.url);
-        const isFav = favList.some(f => f.url === item.url);
+      attachSwipes();
+    }
 
-        const wrap = document.createElement('div');
-        wrap.className = 'card-wrap';
-
-        const bg = document.createElement('div');
-        bg.className = 'swipe-bg';
-        bg.innerHTML = '<span>✓</span><span>★</span>';
-
-        const card = document.createElement('article');
-        card.className = 'card' + (isRead ? ' is-read' : '');
-
-        const titleRow = document.createElement('div');
-        titleRow.className = 'title-row';
-
-        const icons = document.createElement('div');
-        icons.className = 'desktop-icons';
-
-        const btnRead = document.createElement('button');
-        btnRead.className = 'icon-btn' + (isRead ? ' active-read' : '');
-        btnRead.textContent = '✓';
-        btnRead.title = 'Прочитано';
-        btnRead.onclick = () => toggleRead(item.url);
-
-        const btnFav = document.createElement('button');
-        btnFav.className = 'icon-btn' + (isFav ? ' active-fav' : '');
-        btnFav.textContent = isFav ? '★' : '☆';
-        btnFav.title = 'В избранное';
-        btnFav.onclick = () => toggleFav(item);
-
-        icons.appendChild(btnRead);
-        icons.appendChild(btnFav);
-
-        const h2 = document.createElement('h2');
-        h2.className = 'card-title';
-        h2.textContent = item.title;
-
-        titleRow.appendChild(icons);
-        titleRow.appendChild(h2);
-
-        const p = document.createElement('p');
-        p.className = 'card-summary';
-        p.textContent = item.summary;
-
-        const a = document.createElement('a');
-        a.className = 'orig-link';
-        a.href = item.url;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        a.textContent = 'Читать оригинал →';
-        a.onclick = () => markRead(item.url);
-
-        card.appendChild(titleRow);
-        card.appendChild(p);
-        card.appendChild(a);
-
-        // Touch swipe gestures
+    function attachSwipes() {
+      document.querySelectorAll('.card').forEach(card => {
         let startX = 0;
-        let currentX = 0;
+        let startY = 0;
         card.addEventListener('touchstart', e => {
-          startX = e.touches[0].clientX;
-          card.style.transition = 'none';
+          startX = e.changedTouches[0].clientX;
+          startY = e.changedTouches[0].clientY;
         }, { passive: true });
 
-        card.addEventListener('touchmove', e => {
-          currentX = e.touches[0].clientX - startX;
-          if (Math.abs(currentX) > 10) {
-            card.style.transform = `translateX(${Math.max(-90, Math.min(90, currentX))}px)`;
+        card.addEventListener('touchend', e => {
+          const dx = e.changedTouches[0].clientX - startX;
+          const dy = e.changedTouches[0].clientY - startY;
+          if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+            const id = decodeURIComponent(card.getAttribute('data-id'));
+            if (dx > 0) {
+              toggleRead(id);
+            } else {
+              toggleFav(id);
+            }
           }
         }, { passive: true });
-
-        card.addEventListener('touchend', () => {
-          card.style.transition = 'transform 0.2s ease';
-          card.style.transform = 'translateX(0)';
-          if (currentX > 65) {
-            toggleRead(item.url);
-          } else if (currentX < -65) {
-            toggleFav(item);
-          }
-          currentX = 0;
-        });
-
-        wrap.appendChild(bg);
-        wrap.appendChild(card);
-        container.appendChild(wrap);
       });
     }
 
     async function init() {
       try {
         const res = await fetch('news.json?t=' + Date.now());
-        allNews = await res.json();
+        allItems = await res.json();
       } catch (e) {
-        allNews = [];
+        allItems = [];
       }
       render();
     }
