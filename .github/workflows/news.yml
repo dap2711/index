@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'config.json'
+      - 'sources.json'
+      - 'fetch_news.py'
       - '.github/workflows/news.yml'
 
 permissions:
@@ -35,8 +36,4 @@ jobs:
         run: python fetch_news.py
 
       - name: Сохранение обновленного news.json
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add news.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Обновление новостей" && git push)
+        run: | git config --local user.email "action@github.com" git config --local user.name "GitHub Action" git add news.json git diff --quiet && git diff --staged --quiet || (git commit -m "Обновление новостей" && git push)
