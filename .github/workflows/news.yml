@@ -40,4 +40,6 @@ jobs:
           git add news.json
           if ! git diff --quiet || ! git diff --staged --quiet; then
             git commit -m "Обновление новостей"
-            git 
+            git pull --rebase origin main
+            git push
+          fi
