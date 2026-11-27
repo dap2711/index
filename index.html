@@ -325,6 +325,10 @@ details.sg:not([open])>summary::after{content:'▸';font-size:28px;line-height:1
 .dmp a.dmlink{display:block;text-align:left;padding:10px 12px;border-radius:10px;color:var(--tx);text-decoration:none;font-size:15px}
 .dmp a.dmlink:active{background:var(--ac2)}
 .cnotes .fnt.fnt2{white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:clip;line-height:1.35}
+.secretline{padding:12px 4px 6px;font-size:15px;color:var(--tx)}
+.secretline .sword{background:#fff;color:#fff;border:0;padding:0;font:inherit;font-size:15px;cursor:pointer}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:0.5px solid var(--bd)}
+.trow .tt2{font-size:14px;color:var(--tx)}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -376,6 +380,7 @@ function setNoIdx(v){ls.set('noIndex',!!v);applyNoIdx()}
 applyNoIdx();
 let items=ls.get('items',[]),cats=ls.get('cats',['Работа','Дом','Здоровье','Учёба','Покупки']),gone=ls.get('gone',{});
 let catGone=ls.get('catgone',{}),catLive=ls.get('catlive',{});
+let trash=ls.get('trash',[]);
 items.forEach(r=>{if(r.cat&&String(r.cat).indexOf('Практикум')>=0)r.cat='Текучка'});cats=cats.filter(c=>String(c).indexOf('Практикум')<0);if(!cats.includes('Текучка'))cats.push('Текучка');
 const MD={exp:['Еда','Транспорт','Жильё','Здоровье','Развлечения','Прочее'],inc:['Зарплата','Подработка','Прочее']};
 let money=ls.get('money',null)||{};
@@ -400,7 +405,7 @@ async function del(id){delete mem[id];const d=await db();if(d)try{d.transaction(
 let pt=null;
 /* в синхронизацию идут отметки и числа только за последние 60 дней: ячейка Baza вмещает около 50 000 символов */
 function cellSync_(){const cut=Date.now()-60*864e5,a=cellAll_(),o={};Object.keys(a).forEach(k=>{if((a[k].t||0)>=cut)o[k]=a[k]});return o}
-const payload=()=>JSON.stringify({items,gone,cats,catGone,catLive,money,catImg,plog:plog.filter(x=>!x.u||x.u>Date.now()-60*864e5),pvid,tbl2:ls.get('tbl2',null),bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tblcell:cellSync_(),tblts:+ls.get('tblts',0)||0,menu30:localStorage.getItem('menu30')||''});
+const payload=()=>JSON.stringify({items,gone,cats,catGone,catLive,money,catImg,plog:plog.filter(x=>!x.u||x.u>Date.now()-60*864e5),pvid,tbl2:ls.get('tbl2',null),bal:ls.get('bal',{cells:{}}),mnotes:ls.get('mnotes',[]),tblcell:cellSync_(),tblts:+ls.get('tblts',0)||0,menu30:localStorage.getItem('menu30')||'',nap_mailcfg:ls.get('nap_mailcfg',null),nap_bkcfg:ls.get('nap_bkcfg',null),cfgts:+ls.get('cfgts',0)||0,trash:ls.get('trash',[]),secretNote:ls.get('secretNote',''),secretts:+ls.get('secretts',0)||0});
 function save(){ls.set('items',items);ls.set('cats',cats);ls.set('catgone',catGone);ls.set('catlive',catLive);ls.set('gone',gone);ls.set('money',money);ls.set('catimg',catImg);ls.set('plog',plog);ls.set('pvid',pvid);clearTimeout(pt);pt=setTimeout(push,700);wsDirty=true;if(wsc){clearTimeout(wst);wst=setTimeout(wsSync,1500)}}
 async function push(){if(!sdoc)return;try{await sdoc.set({p:payload()});sy(1)}catch(e){sy(0)}}
 function sy(ok){$('#sy').textContent=ok?'☁ Синхронизировано':'Только на этом устройстве'}
@@ -410,7 +415,7 @@ const map={};items.forEach(r=>map[r.id]=r);
 (rm.items||[]).forEach(r=>{if(!map[r.id]||(r.u||0)>(map[r.id].u||0))map[r.id]=r});
 items=Object.values(map).filter(r=>!(gone[r.id]&&gone[r.id]>=(r.u||0))).sort((a,b)=>b.id.localeCompare(a.id));
 Object.entries(rm.catGone||{}).forEach(([k,v])=>{catGone[k]=Math.max(catGone[k]||0,v)});Object.entries(rm.catLive||{}).forEach(([k,v])=>{catLive[k]=Math.max(catLive[k]||0,v)});
-cats=[...new Set([...cats,...(rm.cats||[])])].filter(c=>(catGone[c]||0)<=(catLive[c]||0));mMerge(rm.money);catImg={...(rm.catImg||{}),...catImg};{const pm={};plog.forEach(x=>pm[x.id]=x);(rm.plog||[]).forEach(x=>{if(!pm[x.id])pm[x.id]=x});plog=Object.values(pm)}pvid={...(rm.pvid||{}),...pvid};mergeTables_(rm)}
+cats=[...new Set([...cats,...(rm.cats||[])])].filter(c=>(catGone[c]||0)<=(catLive[c]||0));mMerge(rm.money);catImg={...(rm.catImg||{}),...catImg};{const pm={};plog.forEach(x=>pm[x.id]=x);(rm.plog||[]).forEach(x=>{if(!pm[x.id])pm[x.id]=x});plog=Object.values(pm)}pvid={...(rm.pvid||{}),...pvid};mergeTables_(rm);mergeCfg_(rm)}
 async function initSync(){
 try{if(!window.claude||!claude.use)return;
 const c=await claude.use('db'),u=await claude.use('user');if(!c||!u)return;
@@ -572,7 +577,7 @@ function makeSettingsCollapsible(){
   box.appendChild(d);return d;
  };
  const titleOf=g=>{const f=g[0];if(f.querySelector&&f.querySelector('#nix'))return 'Поисковые роботы';const b=f.tagName==='B'?f:f.querySelector('b');return b?b.textContent.trim():'Настройки'};
- groups.forEach((g,i)=>{mk(titleOf(g),g);if(i===0){const c=ls.get('nap_mailcfg',null)||{};const w=document.createElement('div');w.innerHTML='<input id="mailU" placeholder="Адрес скрипта писем (/exec)" value="'+esc(c.url||'')+'" style="width:100%;box-sizing:border-box;padding:8px;font-size:14px;margin-bottom:6px"><input id="mailS" placeholder="Секрет скрипта писем" value="'+esc(c.secret||'')+'" style="width:100%;box-sizing:border-box;padding:8px;font-size:14px"><div class="mu" style="font-size:12px;margin:6px 0">Письма с напоминаниями уходят через этот скрипт. Адрес получателя указывается в самом напоминании (✉).</div><button type="button" class="p" id="mailSave" style="margin-top:4px">Сохранить</button>';const d=mk('Письма',[w]);d.querySelector('#mailSave').onclick=()=>{const u=d.querySelector('#mailU').value.trim(),s=d.querySelector('#mailS').value.trim();if(u&&s){ls.set('nap_mailcfg',{url:u,secret:s});toast('Адрес писем сохранён')}else{ls.set('nap_mailcfg',null);toast('Адрес писем очищен')}}}});
+ groups.forEach((g,i)=>{mk(titleOf(g),g);if(i===0){const c=ls.get('nap_mailcfg',null)||{};const w=document.createElement('div');w.innerHTML='<input id="mailU" placeholder="Адрес скрипта писем (/exec)" value="'+esc(c.url||'')+'" style="width:100%;box-sizing:border-box;padding:8px;font-size:14px;margin-bottom:6px"><input id="mailS" placeholder="Секрет скрипта писем" value="'+esc(c.secret||'')+'" style="width:100%;box-sizing:border-box;padding:8px;font-size:14px"><div class="mu" style="font-size:12px;margin:6px 0">Письма с напоминаниями уходят через этот скрипт. Адрес получателя указывается в самом напоминании (✉).</div><button type="button" class="p" id="mailSave" style="margin-top:4px">Сохранить</button>';const d=mk('Письма',[w]);d.querySelector('#mailSave').onclick=()=>{const u=d.querySelector('#mailU').value.trim(),s=d.querySelector('#mailS').value.trim();if(u&&s){ls.set('nap_mailcfg',{url:u,secret:s});cfgTouch_();toast('Адрес писем сохранён')}else{ls.set('nap_mailcfg',null);cfgTouch_();toast('Адрес писем очищен')}}}});
 }
 function winModal(title,html){$('#omt').textContent=title;$('#omb').innerHTML=html;$('#om').classList.add('open')}
 $('#bl').onclick=()=>{
@@ -779,7 +784,7 @@ if(!A.length)return h+'<p class="mu">'+(q?'Ничего не найдено.':'�
 [...new Set(A.map(r=>dkey(r.doneAt||r.u||Date.now())))].forEach(k=>{const L=A.filter(r=>dkey(r.doneAt||r.u||Date.now())===k);
 h+=`<details class="dg" data-k="a${k}" ${(openD.has(mode+'a'+k)||q)?'open':''}><summary><span>Выполнено: ${dlbl(k)}</span><span class="mu">${L.length}</span></summary>${L.map(archCard).join('')}</details>`});return h}
 function wipe(r){const fs=r.files||[];r.files=[];r.att=(r.att||[]).filter(a=>a.t==='l');fs.forEach(f=>del(f.id))}
-function purgeDone(){const lim=new Date();lim.setMonth(lim.getMonth()-1);const t=lim.getTime();let ch=false;
+function purgeDone(){trash=trash.filter(x=>{if((x.delAt||0)<Date.now()-30*864e5){(x.files||[]).forEach(f=>del(f.id));return false}return true});ls.set('trash',trash);const lim=new Date();lim.setMonth(lim.getMonth()-1);const t=lim.getTime();let ch=false;
 items.forEach(r=>{if(r.done){if(!r.doneAt){r.doneAt=r.u||Date.now();r.u=Date.now();ch=true}if(r.files&&r.files.length){wipe(r);r.u=Date.now();ch=true}}});
 const n=items.length;items=items.filter(r=>{if(r.done&&r.doneAt&&r.doneAt<t){gone[r.id]=Date.now();return false}return true});if(items.length!==n)ch=true;if(ch)save()}
 const isAu=u=>/\.(mp3|wav|ogg|m4a|aac)$/i.test(u.split('?')[0]);
@@ -792,6 +797,36 @@ const SI={0:'📝',1:'🌅',2:'💼',3:'☀️',4:'🧸',5:'🌙'};
 const ch=r=>`<div class="card ${r.done?'done':''} ${missed(r)?'miss':''}" data-id="${r.id}"><div class="sa-l" aria-hidden="true">✓</div><div class="sa-r"><button type="button" data-a="move" aria-label="Перенести на следующий день">➡️</button></div><div class="cin"><div class="cr"><div class="tile" title="${esc(r.cat?catLabel(r.cat):'Без категории')}">${iconOf(r)}</div>
 <div><div class="ct1">${linkify(r.title)}</div>${(m=>m?`<div class="ct2">${esc(m)}</div>`:'')([showDate&&r.when?dlbl(r.when.slice(0,10)):'',r.mt?'✉ '+r.mt:'',(n=>n?'🔗'+n:'')(r.links.filter(u=>!isMap(u)).length),(n=>n?'📍'+n:'')(r.links.filter(isMap).length),r.files.length?'📎'+r.files.length:''].filter(Boolean).join(' · '))}</div>
 <div class="ca">${r.done?'':'<span class="mvs"><button type="button" data-mv="-1" title="Выше" aria-label="Выше">▲</button><button type="button" data-mv="1" title="Ниже" aria-label="Ниже">▼</button></span>'}<button type="button" data-a="done" title="${r.done?'Вернуть':'Готово'}" aria-label="${r.done?'Вернуть':'Готово'}">${r.done?'↩':'✓'}</button><button type="button" data-a="edit" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" data-a="del" title="Удалить" aria-label="Удалить">🗑</button></div></div><div class="cnotes">${nlist(r).map((t,i)=>`<div class="ct2 fn ${pdone(r,i)?'nd':''}${isPr(r)&&!dueToday(r,i)?' nnd':''}${i>=3?' xhid':''}"${(r.det||[])[i]?` data-det="${i}"`:''}>${isPr(r)&&!r.done?`<button type="button" class="pchk${pdone(r,i)?' on':''}" data-na="done" data-ni="${i}" title="Отметить выполненным" aria-label="Отметить выполненным">${pdone(r,i)?'✓':''}</button>`:`<span class="fnn">${i+1}</span>`}<span class="fnt fnt2">${linkify(String(t).split('\n').slice(0,2).join('\n')).replace(/\n/g,'<br>')}</span></div>`).join('')}</div>${nlist(r).length>3?`<button type="button" class="nmore" aria-label="Показать все подзадачи, всего ${nlist(r).length}">⋯<span class="nbd">${nlist(r).length}</span></button>`:''}${(x=>x?`<div class="md">${x}</div>`:'')(feedAudio(r))}${feedMedia(r)}</div></div>`;
+/* скрытая заметка: строка «. секрет» видна только по слову; текст синхронизируется между устройствами */
+function secretLine_(){return '<div class="secretline"><span class="sdot">. </span><button type="button" id="secretBtn" class="sword">секрет</button></div>'}
+function openSecret_(){winModal('Заметка','<textarea id="secTa" style="width:100%;min-height:200px;box-sizing:border-box;padding:10px;font:inherit;font-size:15px;border:1px solid var(--bd);border-radius:12px;background:var(--sf);color:var(--tx)">'+esc(ls.get('secretNote',''))+'</textarea><button type="button" class="p" id="secSave" style="margin-top:8px">Сохранить</button>')}
+document.addEventListener('click',e=>{
+ if(e.target.closest&&e.target.closest('#secretBtn')){e.stopPropagation();openSecret_();return}
+ if(e.target.closest&&e.target.closest('#secSave')){const v=document.getElementById('secTa').value;ls.set('secretNote',v);ls.set('secretts',Date.now());tblTouch_();toast('Сохранено');const x=document.getElementById('omx');if(x)x.click();return}
+},true);
+/* корзина: удалённые дела хранятся 30 дней и восстанавливаются */
+function trashRow_(){return '<div class="row" style="flex-wrap:nowrap"><button type="button" class="nv" data-trash="1"><span>🗑 Корзина</span><span>'+trash.length+'</span></button></div>'}
+function openTrash_(){const h=trash.length?trash.map(r=>'<div class="trow"><div class="tt2">'+esc(r.title)+'<div class="mu" style="font-size:12px">'+esc((r.when||'').slice(0,10))+'</div></div><button type="button" class="p" data-restore="'+esc(r.id)+'">Восстановить</button></div>').join(''):'<div class="mu">Корзина пуста.</div>';winModal('Корзина',h)}
+function restoreTrash_(id){const r=trash.find(x=>x.id===id);if(!r)return;trash=trash.filter(x=>x.id!==id);ls.set('trash',trash);delete gone[id];r.u=Date.now();delete r.delAt;items.unshift(r);save();render();toast('Восстановлено');const x=document.getElementById('omx');if(x)x.click()}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-restore]');if(b){restoreTrash_(b.dataset.restore);return}const tr=e.target.closest&&e.target.closest('[data-trash]');if(tr){openTrash_();return}},true);
+/* архив: выполненные (можно вернуть в работу) и удалённые (можно восстановить) */
+function archCounts_(){return {done:items.filter(r=>r.done).length,trash:trash.length}}
+function archRow_(){const c=archCounts_();return '<div class="row" style="flex-wrap:nowrap"><button type="button" class="nv" data-arch="1"><span>✅ Архив</span><span>'+(c.done+c.trash)+'</span></button></div>'}
+function archBody_(tab){
+ const c=archCounts_();
+ document.querySelectorAll('[data-atab]').forEach(b=>b.classList.toggle('on',b.dataset.atab===tab));
+ let h;
+ if(tab==='done'){const L=items.filter(r=>r.done).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+  h=L.length?L.map(r=>'<div class="trow"><div class="tt2">'+esc(r.title)+'<div class="mu" style="font-size:12px">'+esc((r.when||'').slice(0,10))+'</div></div><button type="button" class="p" data-undone="'+esc(r.id)+'">В работу</button></div>').join(''):'<div class="mu">Выполненных дел нет.</div>';}
+ else{h=trash.length?trash.map(r=>'<div class="trow"><div class="tt2">'+esc(r.title)+'<div class="mu" style="font-size:12px">'+esc((r.when||'').slice(0,10))+'</div></div><button type="button" class="p" data-restore="'+esc(r.id)+'">Восстановить</button></div>').join(''):'<div class="mu">Удалённых дел нет.</div>';}
+ document.getElementById('archBody').innerHTML=h;
+}
+function openArch_(tab){const c=archCounts_();winModal('Архив','<div style="display:flex;gap:6px;margin-bottom:8px"><button type="button" class="p" data-atab="done" style="flex:1">Выполненные ('+c.done+')</button><button type="button" class="p" data-atab="trash" style="flex:1">Удалённые ('+c.trash+')</button></div><div id="archBody"></div>');archBody_(tab||(c.done?'done':'trash'))}
+document.addEventListener('click',e=>{
+ const a=e.target.closest&&e.target.closest('[data-arch]');if(a){openArch_();return}
+ const tb=e.target.closest&&e.target.closest('[data-atab]');if(tb){archBody_(tb.dataset.atab);return}
+ const u=e.target.closest&&e.target.closest('[data-undone]');if(u){const r=items.find(x=>x.id===u.dataset.undone);if(r){r.done=false;r.doneAt=0;r.u=Date.now();save();render();toast('Возвращено в работу');archBody_('done')}return}
+},true);
 function catUI(){const live=items.filter(r=>!r.done),c=n=>live.filter(r=>r.cat===n).length;
 const nv=(on,attr,ic,lab,n,x)=>`<div class="row" style="flex-wrap:nowrap"><button type="button" class="nv ${on?'on':''}" ${attr}><span>${ic} ${esc(lab)}</span><span>${n}</span></button>${x||''}</div>`,sep='<div class="cl-sep"></div>';
 const others=cats.filter(n=>n!=='Входящие').filter(c=>String(c).indexOf('Практикум')<0);
@@ -800,7 +835,7 @@ $('#cl').innerHTML=nv(!catF&&!impF&&!secF&&!arcF,'data-c=""','🗂','Все ка
 +nv(catF==='Входящие','data-c="Входящие"','📥','Входящие',c('Входящие'))
 +sep+others.map(n=>nv(catF===n,'data-c="'+esc(n)+'"',catIcon(n),catLabel(n),c(n),(catLabel(n)==='Практикум'?'':`<button type="button" class="x" data-dc="${esc(n)}" aria-label="Удалить категорию">✕</button>`))).join('')
 +sep+'<div class="hd"><span>Разделы дня</span></div>'+[1,2,3,4,5].map(n=>`<button type="button" class="nv ${secF===n?'on':''}" data-s="${n}"><span>${SI[n]} ${SL[n]}</span><span>${live.filter(r=>!r.imp&&r.num===n).length}</span></button>`).join('')
-+sep+nv(arcF,'data-arc="1"','✅','Выполненные',items.filter(r=>r.done).length);
++sep+nv(catF==='__none','data-c="__none"','🚫','Без категорий',items.filter(r=>!r.done&&!r.cat).length)+archRow_()+secretLine_();
 $('#cl').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{impF=b.dataset.c==='__imp';secF=0;arcF=false;catF=impF?'':b.dataset.c;tg('c',false);render()});
 $('#cl').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{secF=+b.dataset.s;catF='';impF=false;arcF=false;tg('c',false);render()});
 $('#cl').querySelectorAll('[data-arc]').forEach(b=>b.onclick=()=>{arcF=true;catF='';impF=false;secF=0;tg('c',false);render()});
@@ -820,8 +855,8 @@ if($('#cch'))$('#cch').onclick=()=>{catF='';impF=false;secF=0;arcF=false;render(
 let h='';
 if(arcF){h=archHtml($('#q').value.trim().toLowerCase())}else{
 const [a,z]=range(mode),q=mode==='all'?$('#q').value.trim().toLowerCase():'';
-const base=items.filter(r=>!r.done&&!isPr(r)&&(!catF||r.cat===catF)&&(!impF||r.imp)&&(!secF||r.num===secF)&&(r.when||catF)&&(!q||hay(r).includes(q))&&(mode==='all'||(r.when&&r.when.slice(0,10)>=a&&r.when.slice(0,10)<=z)));
-const multi=!isDay(mode);showDate=false;
+const base=items.filter(r=>!r.done&&!isPr(r)&&(!catF||(catF==='__none'?!r.cat:r.cat===catF))&&(!impF||r.imp)&&(!secF||r.num===secF)&&(r.when||catF)&&(!q||hay(r).includes(q))&&(mode==='all'||!!catF||(r.when&&r.when.slice(0,10)>=a&&r.when.slice(0,10)<=z)));
+const multi=!isDay(mode)||!!catF;showDate=false;
 const srt=(x,y)=>{const a=(x.when||'').slice(0,10),b=(y.when||'').slice(0,10);if(a!==b)return a<b?-1:1;const ox=x.o==null?1e9:x.o,oy=y.o==null?1e9:y.o;return ox!==oy?ox-oy:(x.id<y.id?-1:1)};
 h+=`<div class="dcap">${multi?(mode==='month'?'Дела на месяц':'Все дела'):dlbl(selD)}</div>`;
 const MSD=loc(new Date()).slice(0,10);
@@ -907,8 +942,8 @@ toastA('Выполнено: дело в разделе «Выполненные�
 else if(was)toast('Возвращено в ленту (видео, звук и файлы не восстанавливаются)')}
 if(a==='move'&&r.when&&!r.repeat){const t0=loc(new Date()).slice(0,10),nx=addD(r.when.slice(0,10),1),k0=(missed(r)&&nx<t0)?t0:nx,k=skipWE(k0,r.num);r.when=k+r.when.slice(10);r.u=Date.now();toast('Перенесено: '+dlbl(k)+(k!==k0?' (в выходные такого раздела нет)':''))}
 if(a==='edit'){edit(r);return}
-if(a==='del'){const go=()=>{const idx=items.indexOf(r);items=items.filter(x=>x!==r);gone[id]=Date.now();const tm=setTimeout(()=>{(r.files||[]).forEach(f=>del(f.id))},9500);
-toastA('Напоминание удалено','Отменить',()=>{clearTimeout(tm);items.splice(Math.min(idx,items.length),0,r);delete gone[id];r.u=Date.now();save();render()},9000);save();render()};
+if(a==='del'){const go=()=>{const idx=items.indexOf(r);items=items.filter(x=>x!==r);gone[id]=Date.now();trash=[Object.assign({},r,{delAt:Date.now()})].concat(trash.filter(x=>x.id!==id));ls.set('trash',trash);const tm=0;
+toastA('Напоминание удалено','Отменить',()=>{clearTimeout(tm);items.splice(Math.min(idx,items.length),0,r);delete gone[id];trash=trash.filter(x=>x.id!==id);ls.set('trash',trash);r.u=Date.now();save();render()},9000);save();render()};
 if(r.imp){winModal('Удалить важное напоминание?',`<div class="dtt">${esc(r.title)}</div><div class="row" style="margin-top:14px;justify-content:flex-end"><button type="button" id="dcx">Отмена</button><button type="button" class="p" id="dok" style="background:var(--rd);border-color:var(--rd)">Удалить</button></div>`);
 $('#dcx').onclick=()=>$('#om').classList.remove('open');$('#dok').onclick=()=>{$('#om').classList.remove('open');go()};return}
 go();return}
@@ -927,7 +962,7 @@ const bkData=()=>JSON.stringify({app:'napominalka',v:1,at:new Date().toISOString
 const bkName=()=>'Напоминалка-'+loc(new Date()).slice(0,10)+'.json',bkMark=()=>ls.set('bk_last',loc(new Date()).slice(0,10));
 /* автокопия: раз в сутки при открытии приложения, если подключён адрес скрипта */
 setTimeout(()=>{const t=loc(new Date()).slice(0,10);if(items.length&&ls.get('nap_bkcfg',null)&&ls.get('bk_auto','')!==t){ls.set('bk_auto',t);bkDrive()}},5000);
-async function bkDrive(){const iu=document.getElementById('bku'),is=document.getElementById('bks');if(iu&&is&&iu.value.trim()&&is.value.trim())ls.set('nap_bkcfg',{url:iu.value.trim(),secret:is.value.trim()});const c=ls.get('nap_bkcfg',null);if(!c||!c.url||!c.secret){toast('Укажите адрес и секрет скрипта копий в настройках');return}
+async function bkDrive(){const iu=document.getElementById('bku'),is=document.getElementById('bks');if(iu&&is&&iu.value.trim()&&is.value.trim()){ls.set('nap_bkcfg',{url:iu.value.trim(),secret:is.value.trim()});cfgTouch_()};const c=ls.get('nap_bkcfg',null);if(!c||!c.url||!c.secret){toast('Укажите адрес и секрет скрипта копий в настройках');return}
  const b=$('#bgd');if(b)b.disabled=true;toast('Отправляю копию на Google Диск…');
  try{const r=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'backup',secret:c.secret,name:bkName(),data:bkData()})});const tx=(await r.text()).trim();if(tx!=='ok')throw new Error(tx||'нет ответа');bkMark();toast('Копия сохранена на Google Диск')}
  catch(e){toast('Не удалось сохранить на Диск: '+e.message)}finally{if(b)b.disabled=false}}
@@ -1060,6 +1095,8 @@ function cellDone_(k){const c=cellAll_()[k];return !!(c&&c.d===1)}
 function tcVal_(k){const c=cellAll_()[k];return (c&&c.v!=null)?c.v:''}
 function tblTouch_(){ls.set('tblts',Date.now());wsDirty=true;if(wsc){clearTimeout(wst);wst=setTimeout(wsSync,1500)}}
 function mergeCells_(rc){if(!rc)return;const all=cellAll_();Object.keys(rc).forEach(k=>{if(!all[k]||(rc[k].t||0)>(all[k].t||0))all[k]=rc[k]});ls.set('tblcell',all)}
+function cfgTouch_(){ls.set('cfgts',Date.now());tblTouch_()}
+function mergeCfg_(rm){if(Array.isArray(rm.trash)){const mp=new Map();ls.get('trash',[]).concat(rm.trash).forEach(x=>{const o=mp.get(x.id);if(!o||(x.delAt||0)>(o.delAt||0))mp.set(x.id,x)});trash=[...mp.values()];ls.set('trash',trash)}if((+rm.secretts||0)>(+ls.get('secretts',0)||0)){ls.set('secretNote',rm.secretNote||'');ls.set('secretts',rm.secretts)}if((+rm.cfgts||0)>(+ls.get('cfgts',0)||0)){if(rm.nap_mailcfg)ls.set('nap_mailcfg',rm.nap_mailcfg);if(rm.nap_bkcfg)ls.set('nap_bkcfg',rm.nap_bkcfg);ls.set('cfgts',rm.cfgts)}}
 function mergeTables_(rm){
  const lt=+ls.get('tblts',0)||0,rt=+rm.tblts||0;const ct=Math.max(0,...Object.values(rm.tblcell||{}).map(c=>+c.t||0));
  if(rt>lt){if(rm.tbl2)ls.set('tbl2',rm.tbl2);if(rm.bal)ls.set('bal',rm.bal);if(Array.isArray(rm.mnotes))ls.set('mnotes',rm.mnotes);ls.set('tblts',rt)}
