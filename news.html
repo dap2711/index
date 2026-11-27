@@ -2,148 +2,240 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Лента новостей</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Новости</title>
   <style>
     :root {
       --bg: #ffffff;
       --card-bg: #f6f6f4;
+      --text: #1f2328;
+      --muted: #656d76;
       --accent: #225c3b;
-      --accent-light: #e8f1ec;
-      --text: #1a1c1b;
-      --muted: #68706c;
-      --border: #e4e6e5;
+      --accent-soft: #e6f0ea;
+      --star: #d97706;
+      --star-soft: #fef3c7;
+      --border: #e5e7eb;
     }
-    * { box-sizing: border-box; }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
       margin: 0;
       padding: 16px;
       background-color: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
     }
+
     .container {
-      max-width: 760px;
+      max-width: 740px;
       margin: 0 auto;
     }
-    header {
+
+    .top-bar {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding-bottom: 16px;
-      margin-bottom: 18px;
-      border-bottom: 1px solid var(--border);
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    h1 {
-      font-size: 22px;
-      margin: 0;
-      color: var(--accent);
-    }
-    .home-link {
-      text-decoration: none;
-      color: var(--muted);
-      font-size: 14px;
-      padding: 6px 10px;
-      border-radius: 8px;
-      background: var(--card-bg);
-    }
-    .controls {
-      display: flex;
       gap: 8px;
-      flex-wrap: wrap;
+      margin-bottom: 14px;
     }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 16px;
+    }
+
     .tab-btn {
       border: 1px solid var(--border);
-      background: var(--bg);
+      background: #ffffff;
       color: var(--text);
-      padding: 7px 12px;
-      border-radius: 8px;
+      padding: 7px 14px;
+      border-radius: 20px;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
+
     .tab-btn.active {
       background: var(--accent);
       color: #ffffff;
       border-color: var(--accent);
     }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 12px 0 14px 0;
+    }
+
+    .news-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Обёртка карточки для живого свайпа */
+    .swipe-wrapper {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--card-bg);
+    }
+
+    .swipe-bg {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      font-size: 20px;
+      font-weight: 700;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s ease;
+    }
+
+    .swipe-bg.left-action {
+      background: var(--accent-soft);
+      color: var(--accent);
+      justify-content: flex-start;
+    }
+
+    .swipe-bg.right-action {
+      background: var(--star-soft);
+      color: var(--star);
+      justify-content: flex-end;
+    }
+
     .card {
+      position: relative;
+      z-index: 2;
       background: var(--card-bg);
       border-radius: 14px;
       padding: 16px 18px;
-      margin-bottom: 14px;
-      transition: opacity 0.25s ease, transform 0.2s ease;
-      position: relative;
       touch-action: pan-y;
       user-select: none;
+      will-change: transform;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
     }
-    .card.read {
+
+    .card.dragging {
+      transition: none;
+    }
+
+    .card.is-read {
       opacity: 0.48;
     }
-    .card-meta {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .title-row {
+
+    .card-header {
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
-    .pc-icons {
+
+    /* Две компактные иконки слева от заглавия на ПК */
+    .pc-actions {
       display: flex;
-      gap: 6px;
-      padding-top: 2px;
+      align-items: center;
+      gap: 4px;
       flex-shrink: 0;
+      margin-top: 2px;
     }
+
     .icon-btn {
-      border: 1px solid var(--border);
-      background: #ffffff;
-      color: var(--muted);
       width: 26px;
       height: 26px;
-      border-radius: 6px;
-      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      border-radius: 7px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--muted);
       padding: 0;
+      transition: all 0.15s;
     }
+
+    .icon-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     .icon-btn.active-read {
       background: var(--accent);
-      color: #ffffff;
       border-color: var(--accent);
+      color: #ffffff;
     }
+
     .icon-btn.active-fav {
-      color: #d97706;
-      border-color: #f59e0b;
-      background: #fffbeb;
+      background: var(--star-soft);
+      border-color: var(--star);
+      color: var(--star);
     }
+
     @media (hover: none) and (pointer: coarse) {
-      .pc-icons {
+      .pc-actions {
         display: none;
       }
     }
-    .card h2 {
+
+    .title-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-title {
       font-size: 17px;
+      font-weight: 600;
       line-height: 1.35;
       margin: 0;
       color: var(--text);
     }
-    .summary {
-      font-size: 15px;
+
+    .status-badges {
+      display: inline-flex;
+      gap: 6px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .badge-fav {
+      background: var(--star-soft);
+      color: var(--star);
+    }
+
+    .card-summary {
+      font-size: 14.5px;
       line-height: 1.5;
-      color: #2b302d;
+      color: #2c313a;
       margin: 0 0 12px 0;
       white-space: pre-line;
       display: -webkit-box;
@@ -151,164 +243,273 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    .orig-link {
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .read-link {
       color: var(--accent);
       text-decoration: none;
-      font-size: 14px;
       font-weight: 500;
     }
-    .orig-link:hover {
+
+    .read-link:hover {
       text-decoration: underline;
     }
-    .empty {
+
+    .meta-source {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty-state {
       text-align: center;
       color: var(--muted);
-      padding: 40px 16px;
-      font-size: 15px;
+      padding: 48px 16px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <div class="header-left">
-        <a href="index.html" class="home-link">← На сайт</a>
-        <h1>Новости</h1>
-      </div>
-      <div class="controls">
-        <button class="tab-btn active" id="btn-all" onclick="setTab('all')">Все</button>
-        <button class="tab-btn" id="btn-fav" onclick="setTab('fav')">Избранное (<span id="fav-count">0</span>)</button>
-        <button class="tab-btn" id="btn-hide-read" onclick="toggleHideRead()">Скрыть прочитанные</button>
-      </div>
-    </header>
-    <div id="list" class="empty">Загрузка новостей...</div>
+    <div class="top-bar">
+      <a href="index.html" class="home-btn" title="На главную">☰</a>
+      <button class="tab-btn active" id="tab-all" onclick="setTab('all')">Все новости</button>
+      <button class="tab-btn" id="tab-fav" onclick="setTab('fav')">Сохранённые (<span id="fav-count">0</span>)</button>
+      <button class="tab-btn" id="btn-hide-read" onclick="toggleHideRead()">Скрыть прочитанные</button>
+    </div>
+
+    <div class="section-label">НОВОСТИ</div>
+    <div id="news-list" class="news-list">
+      <div class="empty-state">Загрузка новостей...</div>
+    </div>
   </div>
 
   <script>
+    const READ_KEY = 'dap_news_read_v2';
+    const FAV_KEY = 'dap_news_fav_v2';
+
     let allItems = [];
     let currentTab = 'all';
     let hideRead = false;
 
-    const getReadIds = () => new Set(JSON.parse(localStorage.getItem('news_read_ids') || '[]'));
-    const saveReadIds = (set) => localStorage.setItem('news_read_ids', JSON.stringify([...set]));
-
-    const getFavItems = () => JSON.parse(localStorage.getItem('news_fav_items') || '{}');
-    const saveFavItems = (obj) => localStorage.setItem('news_fav_items', JSON.stringify(obj));
-
-    function toggleRead(id, forceRead = null) {
-      const readSet = getReadIds();
-      if (forceRead === true) {
-        readSet.add(id);
-      } else if (readSet.has(id)) {
-        readSet.delete(id);
-      } else {
-        readSet.add(id);
+    function getReadSet() {
+      try {
+        return new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]'));
+      } catch {
+        return new Set();
       }
-      saveReadIds(readSet);
+    }
+
+    function saveReadSet(set) {
+      localStorage.setItem(READ_KEY, JSON.stringify([...set]));
+    }
+
+    function getFavMap() {
+      try {
+        return JSON.parse(localStorage.getItem(FAV_KEY) || '{}');
+      } catch {
+        return {};
+      }
+    }
+
+    function saveFavMap(map) {
+      localStorage.setItem(FAV_KEY, JSON.stringify(map));
+    }
+
+    function updateFavCounter() {
+      const count = Object.keys(getFavMap()).length;
+      document.getElementById('fav-count').textContent = count;
+    }
+
+    function toggleRead(url, forceState = null) {
+      const readSet = getReadSet();
+      const nextState = forceState !== null ? forceState : !readSet.has(url);
+      if (nextState) {
+        readSet.add(url);
+      } else {
+        readSet.delete(url);
+      }
+      saveReadSet(readSet);
       render();
     }
 
-    function toggleFav(id) {
-      const favs = getFavItems();
-      if (favs[id]) {
-        delete favs[id];
+    function toggleFav(url) {
+      const favMap = getFavMap();
+      if (favMap[url]) {
+        delete favMap[url];
       } else {
-        const item = allItems.find(x => (x.id || x.url) === id);
-        if (item) favs[id] = item;
+        const item = allItems.find(x => x.url === url);
+        if (item) favMap[url] = item;
       }
-      saveFavItems(favs);
+      saveFavMap(favMap);
+      updateFavCounter();
       render();
     }
 
     function setTab(tab) {
       currentTab = tab;
-      document.getElementById('btn-all').classList.toggle('active', tab === 'all');
-      document.getElementById('btn-fav').classList.toggle('active', tab === 'fav');
+      document.getElementById('tab-all').classList.toggle('active', tab === 'all');
+      document.getElementById('tab-fav').classList.toggle('active', tab === 'fav');
       render();
     }
 
     function toggleHideRead() {
       hideRead = !hideRead;
-      document.getElementById('btn-hide-read').classList.toggle('active', hideRead);
+      const btn = document.getElementById('btn-hide-read');
+      btn.classList.toggle('active', hideRead);
+      btn.textContent = hideRead ? 'Показать прочитанные' : 'Скрыть прочитанные';
       render();
     }
 
-    function render() {
-      const container = document.getElementById('list');
-      const readSet = getReadIds();
-      const favs = getFavItems();
-      document.getElementById('fav-count').textContent = Object.keys(favs).length;
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
 
-      let sourceList = currentTab === 'fav' ? Object.values(favs) : allItems;
+    function render() {
+      const container = document.getElementById('news-list');
+      const readSet = getReadSet();
+      const favMap = getFavMap();
+
+      let list = currentTab === 'fav' ? Object.values(favMap) : allItems;
       if (hideRead && currentTab === 'all') {
-        sourceList = sourceList.filter(item => !readSet.has(item.id || item.url));
+        list = list.filter(item => !readSet.has(item.url));
       }
 
-      if (!sourceList.length) {
-        container.className = 'empty';
-        container.textContent = currentTab === 'fav'
-          ? 'В избранном пока пусто. Свайпните карточку справа налево (или нажмите ★ на ПК).'
-          : 'Новостей пока нет.';
+      if (!list || list.length === 0) {
+        container.innerHTML = '<div class="empty-state">Нет новостей для отображения.</div>';
         return;
       }
 
-      container.className = '';
-      container.innerHTML = sourceList.map(item => {
-        const id = item.id || item.url;
-        const isRead = readSet.has(id);
-        const isFav = Boolean(favs[id]);
+      container.innerHTML = list.map((item, idx) => {
+        const isRead = readSet.has(item.url);
+        const isFav = Boolean(favMap[item.url]);
+        const safeUrl = escapeHtml(item.url);
+
         return `
-          <article class="card ${isRead ? 'read' : ''}" data-id="${encodeURIComponent(id)}">
-            <div class="card-meta">${item.source || 'Источник'} • ${item.date || ''}</div>
-            <div class="title-row">
-              <div class="pc-icons">
-                <button class="icon-btn ${isRead ? 'active-read' : ''}" title="Прочитано" onclick="toggleRead(decodeURIComponent('${encodeURIComponent(id)}'))">✓</button>
-                <button class="icon-btn ${isFav ? 'active-fav' : ''}" title="В избранное" onclick="toggleFav(decodeURIComponent('${encodeURIComponent(id)}'))">${isFav ? '★' : '☆'}</button>
+          <div class="swipe-wrapper" data-url="${safeUrl}">
+            <div class="swipe-bg left-action">✓ Прочитано</div>
+            <div class="swipe-bg right-action">★ В избранное</div>
+            <article class="card ${isRead ? 'is-read' : ''}" data-url="${safeUrl}">
+              <div class="card-header">
+                <div class="pc-actions">
+                  <button class="icon-btn ${isRead ? 'active-read' : ''}" title="Отметить прочитанным" onclick="toggleRead('${safeUrl}')">✓</button>
+                  <button class="icon-btn ${isFav ? 'active-fav' : ''}" title="В избранное" onclick="toggleFav('${safeUrl}')">★</button>
+                </div>
+                <div class="title-wrap">
+                  <h2 class="card-title">
+                    ${escapeHtml(item.title)}
+                    ${isFav ? '<span class="status-badges"><span class="badge badge-fav">★</span></span>' : ''}
+                  </h2>
+                </div>
               </div>
-              <h2>${item.title}</h2>
-            </div>
-            <p class="summary">${item.summary}</p>
-            <a href="${item.url}" target="_blank" rel="noopener" class="orig-link" onclick="toggleRead(decodeURIComponent('${encodeURIComponent(id)}'), true)">Читать оригинал →</a>
-          </article>
+              <p class="card-summary">${escapeHtml(item.summary)}</p>
+              <div class="card-footer">
+                <a href="${safeUrl}" target="_blank" rel="noopener" class="read-link" onclick="toggleRead('${safeUrl}', true)">Читать оригинал →</a>
+                <span class="meta-source">${escapeHtml(item.source || '')}</span>
+              </div>
+            </article>
+          </div>
         `;
       }).join('');
 
-      attachSwipes();
+      attachSwipeHandlers();
     }
 
-    function attachSwipes() {
-      document.querySelectorAll('.card').forEach(card => {
+    function attachSwipeHandlers() {
+      const wrappers = document.querySelectorAll('.swipe-wrapper');
+      wrappers.forEach(wrapper => {
+        const card = wrapper.querySelector('.card');
+        const bgLeft = wrapper.querySelector('.left-action');
+        const bgRight = wrapper.querySelector('.right-action');
+        const url = wrapper.getAttribute('data-url');
+
         let startX = 0;
         let startY = 0;
+        let currentX = 0;
+        let isHorizontal = null;
+
         card.addEventListener('touchstart', e => {
-          startX = e.changedTouches[0].clientX;
-          startY = e.changedTouches[0].clientY;
+          if (e.touches.length !== 1) return;
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+          currentX = 0;
+          isHorizontal = null;
+          card.classList.add('dragging');
         }, { passive: true });
 
-        card.addEventListener('touchend', e => {
-          const dx = e.changedTouches[0].clientX - startX;
-          const dy = e.changedTouches[0].clientY - startY;
-          if (Math.abs(dx) > 65 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-            const id = decodeURIComponent(card.getAttribute('data-id'));
-            if (dx > 0) {
-              toggleRead(id);
-            } else {
-              toggleFav(id);
+        card.addEventListener('touchmove', e => {
+          if (e.touches.length !== 1) return;
+          const dx = e.touches[0].clientX - startX;
+          const dy = e.touches[0].clientY - startY;
+
+          if (isHorizontal === null) {
+            if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+              isHorizontal = Math.abs(dx) > Math.abs(dy);
             }
           }
+
+          if (!isHorizontal) return;
+
+          currentX = Math.max(-130, Math.min(130, dx));
+          card.style.transform = `translateX(${currentX}px)`;
+
+          if (currentX > 15) {
+            bgLeft.style.opacity = Math.min(1, currentX / 65);
+            bgRight.style.opacity = 0;
+          } else if (currentX < -15) {
+            bgRight.style.opacity = Math.min(1, Math.abs(currentX) / 65);
+            bgLeft.style.opacity = 0;
+          } else {
+            bgLeft.style.opacity = 0;
+            bgRight.style.opacity = 0;
+          }
         }, { passive: true });
+
+        card.addEventListener('touchend', () => {
+          card.classList.remove('dragging');
+          const threshold = 60;
+
+          if (isHorizontal && currentX >= threshold) {
+            card.style.transform = 'translateX(0px)';
+            bgLeft.style.opacity = 0;
+            toggleRead(url);
+          } else if (isHorizontal && currentX <= -threshold) {
+            card.style.transform = 'translateX(0px)';
+            bgRight.style.opacity = 0;
+            toggleFav(url);
+          } else {
+            card.style.transform = 'translateX(0px)';
+            bgLeft.style.opacity = 0;
+            bgRight.style.opacity = 0;
+          }
+          isHorizontal = null;
+          currentX = 0;
+        });
       });
     }
 
     async function init() {
+      updateFavCounter();
       try {
         const res = await fetch('news.json?t=' + Date.now());
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         allItems = await res.json();
-      } catch (e) {
-        allItems = [];
+        render();
+      } catch (err) {
+        document.getElementById('news-list').innerHTML =
+          '<div class="empty-state">Не удалось загрузить news.json.</div>';
       }
-      render();
     }
+
     init();
   </script>
 </body>
