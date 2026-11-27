@@ -7,7 +7,6 @@ on:
   push:
     paths:
       - 'sources.json'
-      - 'fetch_news.py'
       - '.github/workflows/news.yml'
 
 permissions:
@@ -39,4 +38,6 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add news.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Обновление новостей" && git push)
+          if ! git diff --quiet || ! git diff --staged --quiet; then
+            git commit -m "Обновление новостей"
+            git 
