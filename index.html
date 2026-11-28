@@ -337,6 +337,8 @@ html:not(.touch) .cr{grid-template-columns:30px 40px 1fr auto}
 html:not(.touch) .cr>.advl{justify-self:center}
 .dwk{display:inline-block;min-width:34px;padding:4px 0;border-radius:999px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font:inherit;font-size:12px;text-align:center;cursor:pointer}
 .dwk.on{background:var(--ac);color:#fff;border-color:transparent}
+.tog{padding:8px 14px;border-radius:999px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font:inherit;font-size:14px;cursor:pointer}
+.tog.on{background:var(--ac);color:#fff;border-color:transparent}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -358,7 +360,7 @@ html:not(.touch) .cr>.advl{justify-self:center}
 <div id="nts"></div>
 <div class="row" id="r3"><button type="button" id="bc" title="Категория" aria-label="Категория">🏷️</button><button type="button" id="bs" title="Раздел дня" aria-label="Раздел дня">🕘</button><button type="button" id="br" title="Повторение" aria-label="Повторение">🔁</button><button type="button" id="db" title="Дата" aria-label="Выбрать дату">📅</button><button type="button" id="bt" title="Письмо в назначенное время" aria-label="Письмо в назначенное время">⏰</button><button type="button" id="ib"></button><span class="vsep"></span><button type="button" id="bl" title="Ссылка на видео или музыку" aria-label="Ссылка на видео или музыку">🔗</button><button type="button" id="bp" title="Место на Яндекс Картах" aria-label="Место на Яндекс Картах">📍</button><button type="button" id="bm" title="Записать аудио" aria-label="Записать аудио">🎙</button><button type="button" id="bf" title="Прикрепить файл" aria-label="Прикрепить файл">📎</button></div>
 <div id="sum" class="mu"></div>
-<label class="row" style="gap:8px;margin:10px 0"><input type="checkbox" id="nocoach"> <span>Без совета (не спрашивать ИИ)</span></label>
+<div class="row" style="margin:10px 0"><button type="button" id="autoT" class="tog">🤖 Авто-совет: выкл</button></div>
 <div style="display:none"><select id="ct" aria-label="Категория"></select><select id="sl" aria-label="Раздел дня"></select><select id="rp" aria-label="Повторение"><option value="">Не повторять</option><option value="d">Каждый день</option><option value="wd">По будням</option><option value="w">Каждую неделю</option><option value="m">Каждый месяц</option><option value="y">Каждый год</option><option value="n">Свой интервал…</option></select><div id="rc" class="row" style="display:none"><span class="mu">Повторять каждые</span><input id="rn" type="number" min="1" max="999" value="1" style="width:80px"><select id="ru" style="width:auto"><option value="d" selected>дней</option><option value="w">недель</option><option value="mo">месяцев</option><option value="y">лет</option></select></div></div>
 <input id="wh" type="hidden">
 <input id="ln" type="hidden"><input id="fl" type="file" multiple style="display:none">
@@ -646,10 +648,10 @@ $('#bm').onclick=()=>$('#am').classList.add('open');
 $('#amx').onclick=()=>$('#am').classList.remove('open');
 $('#am').onclick=e=>{if(e.target.id==='am')$('#am').classList.remove('open')};
 setInterval(()=>{$('#bm').textContent=rec?'⏺':'🎙';icons()},700);
-function resetForm(){if($('#nocoach'))$('#nocoach').checked=false;dictStop();voiceMode=false;$('#vb').style.display='none';editId=null;pend=[];keep=[];drop=[];['#ti','#ln'].forEach(s=>$(s).value='');renderNotes($('#nts'),[]);$('#rp').value='';$('#rn').value=1;$('#ru').value='d';rcShow();fillCats('');calSet('');
+function resetForm(){setAuto(false);dictStop();voiceMode=false;$('#vb').style.display='none';editId=null;pend=[];keep=[];drop=[];['#ti','#ln'].forEach(s=>$(s).value='');renderNotes($('#nts'),[]);$('#rp').value='';$('#rn').value=1;$('#ru').value='d';rcShow();fillCats('');calSet('');
 $('#fh').textContent='Новое напоминание';$('#ad').textContent='Сохранить напоминание';$('#cn').style.display='none';showPend();icons()}
 $('#cn').onclick=()=>{resetForm();tg('r',false)};
-function edit(r){editId=r.id;drop=[];keep=[];pend=attList(r).map(a=>a.t==='l'?{lk:a.u}:{id:a.f.id,name:a.f.name,type:a.f.type,old:true});$('#ti').value=r.title;$('#nocoach').checked=!!r.nocoach;renderNotes($('#nts'),r.notes||(r.text?[r.text]:[]),r.nd,r.nr);calSet(r.when,r.num,r.imp);if(!r.when){cal.d='';cal.n=0;cal.imp=0}cal.mt=r.mt||'';cal.me=r.me||ls.get('nap_mail','');calUI();
+function edit(r){editId=r.id;drop=[];keep=[];pend=attList(r).map(a=>a.t==='l'?{lk:a.u}:{id:a.f.id,name:a.f.name,type:a.f.type,old:true});$('#ti').value=r.title;setAuto(!!r.auto);renderNotes($('#nts'),r.notes||(r.text?[r.text]:[]),r.nd,r.nr);calSet(r.when,r.num,r.imp);if(!r.when){cal.d='';cal.n=0;cal.imp=0}cal.mt=r.mt||'';cal.me=r.me||ls.get('nap_mail','');calUI();
 $('#rp').value=r.repeat||'';$('#rn').value=r.rn||1;$('#ru').value=r.ru||'d';rcShow();fillCats(r.cat);$('#fh').textContent='Редактирование';$('#ad').textContent='Сохранить изменения';$('#cn').style.display='';showPend();icons();tg('r',true);$('#ti').focus()}
 $('#ad').onclick=async()=>{
 dictStop();if(rec)await new Promise(r=>stopRec(r));const title=$('#ti').value.trim();if(!title){$('#ti').focus();return}
@@ -657,14 +659,14 @@ for(const p of pend){if(p.blob)await put(p.id,p.blob)}
 for(const f of drop)await del(f.id);
 const r=items.find(x=>x.id===editId)||{id:'r'+Date.now(),done:false};
 const when=$('#wh').value,changed=r.when!==when,nd=!when,cs=$('#ct').value==='__new'?'':$('#ct').value,cat1=nd?(cs||'Текучка'):(cal.imp?'':(cs||(cal.n?'':'Текучка')));
-Object.assign(r,{title,num:(cal.imp||nd)?0:cal.n,imp:nd?0:cal.imp,mt:nd?'':cal.mt,me:(!nd&&cal.mt)?cal.me:'',notes:getNotes($('#nts')),nd:getND($('#nts')),nr:getNR($('#nts')),det:(r.det&&r.det.length===getNotes($('#nts')).length)?r.det:[],text:getNotes($('#nts'))[0]||'',when,cat:cat1,repeat:nd?'':$('#rp').value,rn:+$('#rn').value||1,ru:$('#ru').value,lead:0,
+Object.assign(r,{title,num:(cal.imp||nd)?0:cal.n,imp:nd?0:cal.imp,mt:nd?'':cal.mt,me:(!nd&&cal.mt)?cal.me:'',notes:getNotes($('#nts')),nd:getND($('#nts')),nr:getNR($('#nts')),det:(r.det&&r.det.length===getNotes($('#nts')).length)?r.det:[],text:getNotes($('#nts'))[0]||'',when,cat:cat1,repeat:nd?'':$('#rp').value,rn:+$('#rn').value||1,ru:$('#ru').value,lead:0,auto:!!autoOn,
 tags:r.tags||[],links:pend.filter(p=>p.lk).map(p=>p.lk),
 files:pend.filter(p=>!p.lk).map(p=>({id:p.id,name:p.name,type:p.type})),att:pend.map(p=>p.lk?{t:'l',u:p.lk}:{t:'f',id:p.id}),u:Date.now()});
 if(cat1==='Текучка'&&!cats.includes('Текучка')){cats.push('Текучка');catLive['Текучка']=Date.now()}
 if(changed||!editId){r.fired=false;r.snooze=''}
 if(!editId)items.unshift(r);
 if(when){selD=when.slice(0,10);mode=modeFor(selD);toast('Сохранено')}else toast('Сохранено без даты в категории «'+cat1+'». Найти его можно через значок 🗂.');
-save();resetForm();tg('r',false);
+save();queueAuto();resetForm();tg('r',false);
 render()};
 
 /* список */
@@ -870,6 +872,21 @@ document.addEventListener('click',e=>{
  localStorage.setItem('advice_req',JSON.stringify({id:r.id,title:r.title,fresh:true,subs:nlist(r).map(x=>String(x).split('\n')[0])}));
  window.open('advice.html','_blank');
 },true);
+/* авто-совет: включается кнопкой в форме; запрос уходит при сохранении напоминания */
+let autoOn=false;
+function setAuto(v){autoOn=!!v;const b=$('#autoT');if(b){b.textContent=autoOn?'🤖 Авто-совет: вкл':'🤖 Авто-совет: выкл';b.classList.toggle('on',autoOn)}}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#autoT')){setAuto(!autoOn);}});
+function queueAuto(){
+ const c=ls.get('nap_mailcfg',null);if(!c||!c.url||!c.secret)return;
+ const sent=ls.get('autoSent',{});let ch=false;
+ items.forEach(r=>{
+  if(!r.auto||r.done||!r.title)return;
+  if(sent[r.id]===r.title)return;
+  sent[r.id]=r.title;ch=true;
+  fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'autoadvice',secret:c.secret,id:r.id,title:r.title})}).catch(()=>{});
+ });
+ if(ch)ls.set('autoSent',sent);
+}
 function catUI(){const live=items.filter(r=>!r.done),c=n=>live.filter(r=>r.cat===n).length;
 const nv=(on,attr,ic,lab,n,x)=>`<div class="row" style="flex-wrap:nowrap"><button type="button" class="nv ${on?'on':''}" ${attr}><span>${ic} ${esc(lab)}</span><span>${n}</span></button>${x||''}</div>`,sep='<div class="cl-sep"></div>';
 const others=cats.filter(n=>n!=='Входящие').filter(c=>String(c).indexOf('Практикум')<0);
@@ -1359,7 +1376,7 @@ if(!confirm('Загрузить '+rows.length+' строк: обновить '+e
 rows.forEach((r,k)=>{const d=csvDate(g(r,'дата')),tm=(g(r,'время').match(/^(\d{1,2}):(\d{2})/)||[]),when=d?d+'T'+(tm[1]?tm[1].padStart(2,'0')+':'+tm[2]:'09:00'):'',nt=(r[ix('заметки')]||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean),cn=g(r,'категория');
 let cat='';if(cn){cat=cats.find(c=>catLabel(c).toLowerCase()===cn.toLowerCase())||'';if(!cat){cat='📁 '+cn;cats.push(cat)}}
 const sv=g(r,'раздел дня').toLowerCase(),sn=Object.keys(SL).find(n=>SL[n].toLowerCase()===sv)||(/^[1-5]$/.test(sv)?sv:''),imi=IM.findIndex(x=>x[1].toLowerCase()===g(r,'важность').toLowerCase()),imp=imi>0?imi:0,rp=g(r,'повтор').toLowerCase(),rep=RPW[rp]||rp,dn=/^(да|yes|1|true)$/i.test(g(r,'выполнено')),id=g(r,'id');
-const ps={title:g(r,'название'),notes:nt,text:nt[0]||'',when,cat,num:imp?0:+(sn||3),imp,repeat:rep,done:dn,nocoach:!!($('#nocoach')&&$('#nocoach').checked),u:Date.now()},old=id?items.find(x=>x.id===id):null;
+const ps={title:g(r,'название'),notes:nt,text:nt[0]||'',when,cat,num:imp?0:+(sn||3),imp,repeat:rep,done:dn,u:Date.now()},old=id?items.find(x=>x.id===id):null;
 if(old){if(nlist(old).join('\n')!==nt.join('\n')){old.nd=[];old.det=[]}Object.assign(old,ps)}else items.push(Object.assign({id:'r'+Date.now()+k,rn:1,ru:'d',lead:0,links:[],files:[],att:[],tags:[],mt:'',me:''},ps))});
 save();render();$('#om').classList.remove('open');toast('CSV загружен: '+rows.length)};fr.readAsText(fl,'utf-8')};
 /* меню */
