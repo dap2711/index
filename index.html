@@ -335,6 +335,8 @@ html:not(.touch) .advl{display:inline-flex}
 .touch .advl{display:none}
 html:not(.touch) .cr{grid-template-columns:30px 40px 1fr auto}
 html:not(.touch) .cr>.advl{justify-self:center}
+.dwk{display:inline-block;min-width:34px;padding:4px 0;border-radius:999px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font:inherit;font-size:12px;text-align:center;cursor:pointer}
+.dwk.on{background:var(--ac);color:#fff;border-color:transparent}
 </style>
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-main-192.png"><link rel="apple-touch-icon" href="icon-main-180.png"><meta name="theme-color" content="#2e7d5b"></head>
 <body>
@@ -372,7 +374,7 @@ html:not(.touch) .cr>.advl{justify-self:center}
 <div id="om"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b id="omt"></b><button type="button" class="cl" id="omx" aria-label="Закрыть">✕</button></div><div id="omb"></div></div></div>
 <div id="am"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Запись аудио</b><button type="button" class="cl" id="amx" aria-label="Закрыть">✕</button></div><div class="mu">Нажмите кнопку, чтобы начать запись, и ещё раз, чтобы остановить. Запись добавится к напоминанию.</div><div class="row" style="margin-top:12px"><button type="button" id="rb">🎙 Записать аудио</button><span id="rt" class="rec"></span></div>
 <label class="row" style="margin-top:12px;gap:8px;flex-wrap:nowrap"><input type="checkbox" id="dsw" checked style="width:auto"><span>Записывать текст речи в заметку</span></label><div id="dst" class="mu" style="margin-top:6px"></div></div></div>
-<div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="dal" title="Спросить Алису (Яндекс)" aria-label="Спросить Алису">🟣</button><button type="button" id="dgm" title="Спросить Gemini" aria-label="Спросить Gemini">✨</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
+<div id="dm"><div class="cbox dbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Напоминание</b><span class="row" style="gap:4px"><button type="button" id="ddl" title="Удалить" aria-label="Удалить">🗑</button><button type="button" id="dpar" title="Редактировать" aria-label="Редактировать">✏️</button><button type="button" class="cl" id="dmx" aria-label="Закрыть">✕</button></span></div><div id="dmb"></div></div></div>
 <div id="cm"><div class="cbox"><div class="row" style="justify-content:space-between;margin-bottom:8px"><button type="button" id="cpv" aria-label="Предыдущий месяц">‹</button><b id="cmt"></b><button type="button" id="cnx" aria-label="Следующий месяц">›</button></div><div class="cg mu" style="margin-bottom:4px"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cg" id="cgd"></div><div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" id="cnd">Без даты</button><button type="button" id="cx">Закрыть</button></div></div></div>
 <div id="bar"><button type="button" class="p" id="nb">＋ Новое</button></div>
 <div id="dmp" class="dmp" hidden><button type="button" data-dm="all">🗓 Дела на год</button><button type="button" data-dm="cat">🗂 Категории</button><a class="dmlink" href="news.html" target="_blank" rel="noopener">📰 Новости</a><button type="button" data-dm="mny">💰 Деньги</button><button type="button" data-dm="prb">📋 Таблица</button><button type="button" data-dm="mnb">🍽 Меню</button><button type="button" id="bset" data-dm="set" style="width:100%;text-align:left">⚙ Настройка</button></div>
@@ -737,7 +739,7 @@ window.open(url,'_blank','noopener');
 if(ok)toast('Текст скопирован. Если открылся старый диалог, нажмите «Новый чат» и вставьте текст ('+name+')');
 else{winModal('Скопируйте текст вопроса',`<div class="mu" style="margin-bottom:8px">Автоматически скопировать не удалось. Выделите текст ниже и скопируйте его, чат уже открыт в новой вкладке.</div><textarea id="cpt" readonly style="min-height:150px">${esc(q)}</textarea>`);const t=$('#cpt');t.focus();t.select();
 if(pr)pr.then(()=>{$('#om').classList.remove('open');toast('Текст скопирован. Вставьте его в чат: '+name)},()=>{})}};
-$('#dal').onclick=()=>askAI('https://alice.yandex.ru/','Алиса');$('#dgm').onclick=()=>askAI('https://gemini.google.com/app','Gemini');
+$('#ddl').onclick=()=>{const id=dId;act(id,'del');closeD()};
 $('#dmx').onclick=closeD;$('#dm').onclick=e=>{if(e.target.id==='dm')closeD()};
 const attList=r=>{const fm={};r.files.forEach(f=>fm[f.id]=f);const out=[],used=new Set();
 if(r.att&&r.att.length){r.att.forEach(a=>{if(a.t==='l'&&r.links.includes(a.u))out.push({t:'l',u:a.u});else if(a.t==='f'&&fm[a.id]){out.push({t:'f',f:fm[a.id]});used.add(a.id)}});
@@ -980,7 +982,7 @@ if(rep)toastA('Повтор: следующее — '+dlbl(r.when.slice(0,10)),'
 if(!was&&!rep){const tm=setTimeout(()=>{if(r.done){wipe(r);r.u=Date.now();save();render()}},9500);
 toastA('Выполнено: дело в разделе «Выполненные»','Отменить',()=>{clearTimeout(tm);r.done=false;r.doneAt=0;r.u=Date.now();save();render()},9000)}
 else if(was)toast('Возвращено в ленту (видео, звук и файлы не восстанавливаются)')}
-if(a==='move'&&r.when&&!r.repeat){const t0=loc(new Date()).slice(0,10),nx=addD(r.when.slice(0,10),1),k0=(missed(r)&&nx<t0)?t0:nx,k=skipWE(k0,r.num);r.when=k+r.when.slice(10);r.u=Date.now();toast('Перенесено: '+dlbl(k)+(k!==k0?' (в выходные такого раздела нет)':''))}
+if(a==='move'&&r.when){const t0=loc(new Date()).slice(0,10),nx=addD(r.when.slice(0,10),1),k0=(missed(r)&&nx<t0)?t0:nx,k=skipWE(k0,r.num);r.when=k+r.when.slice(10);r.u=Date.now();toast('Перенесено: '+dlbl(k)+(k!==k0?' (в выходные такого раздела нет)':''))}
 if(a==='edit'){edit(r);return}
 if(a==='del'){const go=()=>{const idx=items.indexOf(r);items=items.filter(x=>x!==r);gone[id]=Date.now();trash=[Object.assign({},r,{delAt:Date.now()})].concat(trash.filter(x=>x.id!==id));ls.set('trash',trash);const tm=0;
 toastA('Напоминание удалено','Отменить',()=>{clearTimeout(tm);items.splice(Math.min(idx,items.length),0,r);delete gone[id];trash=trash.filter(x=>x.id!==id);ls.set('trash',trash);r.u=Date.now();save();render()},9000);save();render()};
@@ -1156,13 +1158,16 @@ const TBL_DAY=[
  {id:'ang',name:'английский',start:'2026-11-21',rule:'tts'}
 ];
 function tblDays_(){const o=[];let s='2026-11-21';while(s<='2026-12-31'){o.push(s);s=new Date((ud(s)+1)*864e5).toISOString().slice(0,10)}return o}
+function dayDays_(it){
+ if(Array.isArray(it.days))return it.days;
+ if(it.rule==='mwf')return [1,3,5];
+ if(it.rule==='tts')return [2,4,6];
+ return [0,1,2,3,4,5,6];
+}
 function dayPlanned_(it,day){
  if(day<it.start)return false;
- if(it.rule==='daily')return true;
  const wd=new Date(ud(day)*864e5).getUTCDay();
- if(it.rule==='mwf')return [1,3,5].indexOf(wd)>=0;
- if(it.rule==='tts')return [2,4,6].indexOf(wd)>=0;
- return false;
+ return dayDays_(it).indexOf(wd)>=0;
 }
 function tblDayBlock_(){
  const days=tblDays_(),its=dayItems_();
@@ -1180,9 +1185,15 @@ function tblAddForm_(kind,items){
  return h+'</div>';
 }
 function dayItems_(){const a=ls.get('tblday',null);return Array.isArray(a)?a:TBL_DAY}
+function dayWdChips_(days,attr){
+ const names=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];const order=[1,2,3,4,5,6,0];
+ return order.map(n=>'<button type="button" class="dwk'+(days.indexOf(n)>=0?' on':'')+'" '+attr.replace('N',n)+'>'+names[order.indexOf(n)]+'</button>').join('');
+}
 function dayAddForm_(its){
- let h='<div class="tbl-new"><input id="tn_d" placeholder="Новое дело" style="flex:1;min-width:0"><select id="te_d"><option value="daily">каждый день</option><option value="mwf">пн, ср, пт</option><option value="tts">вт, чт, сб</option></select><button type="button" class="tbl-add" data-add="d">Добавить</button></div><div class="tbl-list">';
- its.forEach(it=>{h+='<div class="tbl-row"><span>'+esc(it.name)+'</span><button type="button" class="tbl-del" data-del="d|'+it.id+'">✕</button></div>'});
+ let h='<div class="tbl-new"><input id="tn_d" placeholder="Новое дело" style="flex:1;min-width:0"><button type="button" class="tbl-add" data-add="d">Добавить</button></div>';
+ h+='<div class="dwrow" style="display:flex;flex-wrap:wrap;gap:4px;margin:6px 0">'+dayWdChips_([],'data-dwnew="N"')+'</div>';
+ h+='<div class="tbl-list">';
+ its.forEach(it=>{h+='<div class="tbl-row" style="flex-direction:column;align-items:stretch"><div style="display:flex;justify-content:space-between;align-items:center"><span>'+esc(it.name)+'</span><button type="button" class="tbl-del" data-del="d|'+it.id+'">✕</button></div><div style="display:flex;flex-wrap:wrap;gap:4px">'+dayWdChips_(dayDays_(it),'data-dwd="'+esc(it.id)+'|N"')+'</div></div>'});
  return h+'</div>';
 }
 function tblBlock_(kind,title,cols,lab,items){
@@ -1201,7 +1212,10 @@ function renderTbl(){
   : (tblMode==='y' ? tblBlock_('y','Ежемесячно',TBL_MONTHS,c=>TBL_MN[+c.slice(5,7)-1],d.y) : tblDayBlock_());
  $('#pbody').innerHTML='<div class="mu" style="font-size:13px;margin:6px 0 4px">Нажмите на ячейку, чтобы отметить выполнение.</div>'+block+legend;
 }
-document.addEventListener('click',e=>{const tm=e.target.closest&&e.target.closest('#ps [data-tm]');if(tm){tblMode=tm.dataset.tm;renderTbl()}},true);
+document.addEventListener('click',e=>{
+ const dn=e.target.closest&&e.target.closest('[data-dwnew]');if(dn){dn.classList.toggle('on');return}
+ const dw=e.target.closest&&e.target.closest('[data-dwd]');if(dw){const[id,n]=dw.dataset.dwd.split('|');const arr=dayItems_().map(x=>Object.assign({},x));const it=arr.find(x=>x.id===id);if(!it)return;let days=dayDays_(it).slice();const k=+n;if(days.indexOf(k)>=0){if(days.length===1){toast('Оставьте хотя бы один день');return}days=days.filter(x=>x!==k)}else days.push(k);it.days=days;delete it.rule;ls.set('tblday',arr);tblTouch_();renderTbl();const ed=document.querySelector('.tbm .tbl-edit');if(ed)ed.open=true;return}
+ const tm=e.target.closest&&e.target.closest('#ps [data-tm]');if(tm){tblMode=tm.dataset.tm;renderTbl()}},true);
 
 document.addEventListener('click',e=>{
  const td=e.target.closest&&e.target.closest('.tbt td[data-tk]');
@@ -1213,7 +1227,7 @@ document.addEventListener('click',e=>{
  if(del){const[kind,id]=del.dataset.del.split('|');if(kind==='d'){ls.set('tblday',dayItems_().filter(x=>x.id!==id));tblTouch_();renderTbl();return}const d=tblData();d[kind]=d[kind].filter(x=>x.id!==id);ls.set('tbl2',d);tblTouch_();renderTbl();return}
  const add=e.target.closest&&e.target.closest('[data-add]');
  if(add){const kind=add.dataset.add,nm=(document.getElementById('tn_'+kind).value||'').trim();if(!nm){toast('Введите название дела');return}
-  if(kind==='d'){const arr=dayItems_().slice();arr.push({id:'d'+Date.now(),name:nm,start:loc(new Date()).slice(0,10),rule:document.getElementById('te_d').value});ls.set('tblday',arr);tblTouch_();renderTbl();return}
+  if(kind==='d'){const days=[...document.querySelectorAll('[data-dwnew].on')].map(x=>+x.dataset.dwnew);if(!days.length){toast('Выберите хотя бы один день');return}const arr=dayItems_().slice();arr.push({id:'d'+Date.now(),name:nm,start:loc(new Date()).slice(0,10),days:days});ls.set('tblday',arr);tblTouch_();renderTbl();return}
   const d=tblData(),id=kind+Date.now();
   if(kind==='w'){const ev=+document.getElementById('te_w').value;d.w.push({id,name:nm,from:ev===2?'2026-11-28':TBL_W0,every:ev})}
   else if(kind==='m'){d.m.push({id,name:nm})}
