@@ -11,12 +11,23 @@ body{margin:0;padding:max(14px,env(safe-area-inset-top)) 16px max(24px,env(safe-
 h1{font-size:21px;margin:0 0 12px;font-weight:600}
 .ans{white-space:pre-wrap;font-size:17px;line-height:1.65}
 .mu{color:#6a736d;font-size:15px}
-.btn{display:block;width:100%;margin-top:22px;padding:14px;border-radius:14px;border:0;background:#2e7d5b;color:#fff;font:inherit;font-size:16px;font-weight:600}
+.acts{display:flex;gap:10px;margin-top:18px}
+.acts button{flex:1;padding:12px;border-radius:12px;border:1px solid #cfd8d3;background:#f6f9f7;font:inherit;font-size:15px;color:#1b1f1c}
+.acts button.on{background:#2e7d5b;color:#fff;border-color:transparent}
+.acts button.del{color:#b3261e}
+.msg{white-space:pre-wrap;margin:10px 0;padding:10px 12px;border-radius:12px;max-width:92%;font-size:16px;line-height:1.5}
+.msg.u{margin-left:auto;background:#2e7d5b;color:#fff}
+.msg.a{background:#f1f5f2;color:#1b1f1c}
+.inp{display:flex;gap:8px;margin-top:14px}
+.inp textarea{flex:1;min-height:48px;padding:10px 12px;border-radius:12px;border:1px solid #cfd8d3;font:inherit;font-size:16px;box-sizing:border-box}
+.inp button{padding:0 16px;border-radius:12px;border:0;background:#2e7d5b;color:#fff;font:inherit;font-size:16px}
+.inp button:disabled{opacity:.6}
+.btn{display:block;width:100%;margin-top:18px;padding:14px;border-radius:14px;border:0;background:#2e7d5b;color:#fff;font:inherit;font-size:16px;font-weight:600}
 .btn:disabled{opacity:.6}
-.subs{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.subs{margin-top:14px;display:flex;flex-direction:column;gap:8px}
 .sub{padding:12px 14px;border-radius:12px;border:1px solid #cfd8d3;background:#f6f9f7;text-align:left;font:inherit;font-size:16px;color:#1b1f1c}
 .block{margin-top:22px;padding-top:16px;border-top:1px solid #e3e9e5}
-@media (prefers-color-scheme:dark){body{background:#121a16;color:#e6efe9}.back{color:#4cc79a}.mu{color:#9baba1}.sub{background:#1b2620;border-color:#2c3a33;color:#e6efe9}.block{border-color:#2c3a33}}
+@media (prefers-color-scheme:dark){body{background:#121a16;color:#e6efe9}.back{color:#4cc79a}.mu{color:#9baba1}.acts button,.sub,.inp textarea{background:#1b2620;border-color:#2c3a33;color:#e6efe9}.acts button.on{background:#2e7d5b;color:#fff}.msg.a{background:#1b2620;color:#e6efe9}.block{border-color:#2c3a33}}
 </style>
 </head>
 <body>
@@ -25,37 +36,141 @@ h1{font-size:21px;margin:0 0 12px;font-weight:600}
 <script>
 (function(){
  var out=document.getElementById('out');
- function cfg(){try{return JSON.parse(localStorage.getItem('nap_mailcfg'))}catch(e){return null}}
- function ask(mode,text){
-  var c=cfg();
-  if(!c||!c.url||!c.secret)return Promise.reject(new Error('не задан адрес писем в настройках напоминалки'));
-  return fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'advice',mode:mode,secret:c.secret,text:text})})
-   .then(function(r){return r.text()}).then(function(tx){tx=(tx||'').trim();if(tx.indexOf('error')===0)throw new Error(tx);return tx});
+ function cfg(key){try{return JSON.parse(localStorage.getItem(key))}catch(e){return null}}
+ function post(url,body){
+  return fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).then(function(r){return r.text()}).then(function(tx){tx=(tx||'').trim();if(tx.indexOf('error')===0)throw new Error(tx);return tx});
  }
- function block(){var d=document.createElement('div');d.className='block';out.appendChild(d);return d}
- var req=null;try{req=JSON.parse(localStorage.getItem('advice_req'))}catch(e){}
+ // запрос к ИИ: mode 'full' — новый совет, 'sub' — подзадача, 'chat' — продолжение разговора
+ function ask(mode,text,history){
+  var c=cfg('nap_mailcfg');
+  if(!c||!c.url||!c.secret)return Promise.reject(new Error('не задан адрес писем в настройках напоминалки'));
+  var body={action:'advice',mode:mode,secret:c.secret,text:text};
+  if(history)body.history=history;
+  return post(c.url,body);
+ }
+ function b64ToUtf8(b64){var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new TextDecoder().decode(u)}
+ function utf8ToB64(s){var u=new TextEncoder().encode(s),bin='';for(var i=0;i<u.length;i++)bin+=String.fromCharCode(u[i]);return btoa(bin)}
+ // все сохранённые советы из папки синхронизации
+ function loadMap(){
+  var sc=cfg('nap_sync');
+  if(!sc||!sc.u||!sc.p)return Promise.resolve({map:{},sc:null});
+  return fetch(sc.u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({pass:sc.p,act:'get',id:'advice-data'})})
+   .then(function(r){return r.json()}).then(function(j){
+     var map=(j&&j.b64)?JSON.parse(b64ToUtf8(j.b64)):{};
+     return {map:map||{},sc:sc};
+   }).catch(function(){return {map:{},sc:cfg('nap_sync')}});
+ }
+ function saveMap(sc,map){
+  return fetch(sc.u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({pass:sc.p,act:'put',id:'advice-data',type:'application/json',b64:utf8ToB64(JSON.stringify(map))})})
+   .then(function(r){return r.json()}).then(function(j){if(j&&j.error)throw new Error(j.error);return true});
+ }
+ var req=cfg('advice_req');
  if(req){
   var h=document.createElement('h1');h.textContent=req.title;out.appendChild(h);
   var ans=document.createElement('div');ans.className='ans';ans.textContent='Думаю...';out.appendChild(ans);
-  ask('full','Мне нужен совет по: '+req.title).then(function(tx){ans.textContent=tx;
-   var b=document.createElement('button');b.className='btn';b.textContent='Помочь с подзадачей';
-   out.appendChild(b);
-   var box=document.createElement('div');box.className='subs';out.appendChild(box);
-   b.onclick=function(){
-    b.style.display='none';
-    if(!req.subs||!req.subs.length){box.innerHTML='<div class="mu">У этого дела нет подзадач.</div>';return}
-    req.subs.forEach(function(s){
-     var sb=document.createElement('button');sb.className='sub';sb.textContent=s;
-     sb.onclick=function(){
-      sb.disabled=true;var old=sb.textContent;sb.textContent='Думаю...';
-      var res=block();res.innerHTML='<div class="mu">'+s.replace(/</g,'&lt;')+'</div><div class="ans"></div>';
-      ask('sub','Мне нужна помощь с подзадачей: '+s+'. Дело: '+req.title).then(function(tx){res.querySelector('.ans').textContent=tx;sb.textContent=old;sb.disabled=false})
-       .catch(function(e){res.querySelector('.ans').textContent='Не получилось: '+e.message;sb.textContent=old;sb.disabled=false});
-     };
-     box.appendChild(sb);
-    });
-   };
-  }).catch(function(e){ans.textContent='Не получилось: '+e.message});
+  var acts=document.createElement('div');acts.className='acts';acts.style.display='none';
+  var bFav=document.createElement('button');bFav.textContent='⭐ В избранное';
+  var bDel=document.createElement('button');bDel.textContent='🗑 Удалить';bDel.className='del';
+  acts.appendChild(bFav);acts.appendChild(bDel);out.appendChild(acts);
+  var dialog=document.createElement('div');out.appendChild(dialog);
+  var inpWrap=document.createElement('div');inpWrap.className='inp';inpWrap.style.display='none';
+  var ta=document.createElement('textarea');ta.placeholder='Уточнить…';
+  var bSend=document.createElement('button');bSend.textContent='➤';
+  inpWrap.appendChild(ta);inpWrap.appendChild(bSend);out.appendChild(inpWrap);
+  var box=document.createElement('div');box.className='subs';
+  var b=document.createElement('button');b.className='btn';b.textContent='Помочь с подзадачей';
+  var st={map:{},sc:null,entry:null,history:[],busy:false};
+
+  function renderDialog(){
+   dialog.innerHTML='';
+   st.history.forEach(function(m,i){
+    if(i===0)return;                          // первый ответ уже показан выше
+    var d=document.createElement('div');d.className='msg '+(m.role==='user'?'u':'a');d.textContent=m.content;dialog.appendChild(d);
+   });
+  }
+  function showActs(){
+   acts.style.display='flex';inpWrap.style.display='flex';
+   bFav.className=(st.entry&&st.entry.keep)?'on':'';
+   bFav.textContent=(st.entry&&st.entry.keep)?'✓ В избранном':'⭐ В избранное';
+  }
+  function persist(){
+   if(!(st.entry&&st.entry.keep)||!st.sc)return Promise.resolve();
+   st.entry.history=st.history;
+   st.map[req.id]=st.entry;
+   return saveMap(st.sc,st.map);
+  }
+  function newAdvice(){
+   ans.textContent='Думаю...';
+   return ask('full','Мне нужен совет по: '+req.title).then(function(tx){
+    st.entry=null;st.history=[{role:'assistant',content:tx}];
+    ans.textContent=tx;renderDialog();showActs();
+   });
+  }
+  function showSaved(e){
+   st.entry=e;st.history=e.history||[{role:'assistant',content:e.text}];
+   ans.textContent=st.history[0].content;renderDialog();showActs();
+  }
+
+  loadMap().then(function(res){
+   st.map=res.map;st.sc=res.sc;
+   var e=st.map[req.id];
+   if(req.fresh){
+    if(e&&e.keep){
+     if(!confirm('Совет уже в избранном. Заменить новым? Сохранённый разговор будет удалён.')){ans.textContent='';showSaved(e);return}
+     delete st.map[req.id];
+    }
+    return newAdvice();
+   }
+   if(e&&e.skip){ans.textContent='Совет удалён. Для этого дела новый не создаётся.';return}
+   if(e&&e.text){showSaved(e);return}
+   return newAdvice();
+  }).catch(function(err){ans.textContent='Не получилось: '+err.message});
+
+  bFav.onclick=function(){
+   if(!st.sc){alert('Нет данных синхронизации');return}
+   if(!st.entry)st.entry={title:req.title,text:st.history[0].content,t:Date.now()};
+   st.entry.keep=true;st.entry.skip=false;
+   st.entry.history=st.history;
+   st.map[req.id]=st.entry;
+   saveMap(st.sc,st.map).then(showActs).catch(function(e){alert('Не сохранилось: '+e.message)});
+  };
+  bDel.onclick=function(){
+   if(!confirm('Удалить совет и разговор?'))return;
+   if(!st.sc){alert('Нет данных синхронизации');return}
+   st.map[req.id]={title:req.title,text:'',skip:true,keep:false,t:Date.now()};
+   st.entry=null;st.history=[];
+   saveMap(st.sc,st.map).then(function(){ans.textContent='Совет удалён. Для этого дела новый не создаётся.';dialog.innerHTML='';acts.style.display='none';inpWrap.style.display='none';box.innerHTML='';b.style.display='none'})
+    .catch(function(e){alert('Не удалилось: '+e.message)});
+  };
+  bSend.onclick=function(){
+   var q=ta.value.trim();if(!q||st.busy)return;
+   st.busy=true;bSend.disabled=true;
+   st.history.push({role:'user',content:q});ta.value='';renderDialog();
+   var wait=document.createElement('div');wait.className='msg a';wait.textContent='Думаю...';dialog.appendChild(wait);
+   ask('chat',q,st.history).then(function(tx){
+    st.history.push({role:'assistant',content:tx});renderDialog();
+    return persist();
+   }).catch(function(err){
+    st.history.push({role:'assistant',content:'Не получилось: '+err.message});renderDialog();
+   }).then(function(){st.busy=false;bSend.disabled=false});
+  };
+
+  out.appendChild(b);out.appendChild(box);
+  b.onclick=function(){
+   b.style.display='none';
+   if(!req.subs||!req.subs.length){box.innerHTML='<div class="mu">У этого дела нет подзадач.</div>';return}
+   req.subs.forEach(function(s){
+    var sb=document.createElement('button');sb.className='sub';sb.textContent=s;
+    sb.onclick=function(){
+     sb.disabled=true;var old=sb.textContent;sb.textContent='Думаю...';
+     var res=block();res.innerHTML='<div class="mu">'+s.replace(/</g,'&lt;')+'</div><div class="ans"></div>';
+     ask('sub','Мне нужна помощь с подзадачей: '+s+'. Дело: '+req.title).then(function(tx){res.querySelector('.ans').textContent=tx;sb.textContent=old;sb.disabled=false})
+      .catch(function(e){res.querySelector('.ans').textContent='Не получилось: '+e.message;sb.textContent=old;sb.disabled=false});
+    };
+    box.appendChild(sb);
+   });
+  };
+  function block(){var d=document.createElement('div');d.className='block';out.appendChild(d);return d}
   return;
  }
  var raw=localStorage.getItem('advice_last');
